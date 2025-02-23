@@ -10,6 +10,7 @@ import {
   sendNewsKeys,
   newsStatusKeys,
   backToManageUsers,
+  backToSendNews,
 } from 'src/common/constants/admin';
 import { ContextType } from 'src/common/types';
 
@@ -85,6 +86,7 @@ export class AdminActions {
       reply_markup: backToManageUsers,
     });
   }
+
   /*
   
 
@@ -100,13 +102,30 @@ export class AdminActions {
     await ctx.editMessageText(mainMessageAdmin, { reply_markup: sendNewsKeys });
   }
 
-  /*
-  
-  
-  Admin uchun yangiliklar bolimiga qaytish tugmasi harakati
+  @Action('forEverUsers')
+  async forEverUsers(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText('Coming soon', { reply_markup: backToSendNews });
+  }
 
+  @Action('byDepatments')
+  async byDepatments(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText('Coming soon', { reply_markup: backToSendNews });
+  }
 
-  */
+  @Action('byPositions')
+  async byPositions(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText('Coming soon', { reply_markup: backToSendNews });
+  }
+
+  @Action('forSelectedUsers')
+  async forSelectedUsers(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText('Coming soon', { reply_markup: backToSendNews });
+  }
+
+  @Action('backToSendNews')
+  async backToSendNews(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText('Coming soon', { reply_markup: sendNewsKeys });
+  }
 
   @Action('backToNews')
   async backToNews(@Ctx() ctx: ContextType) {
@@ -127,5 +146,19 @@ export class AdminActions {
     await ctx.editMessageText(mainMessageAdmin, {
       reply_markup: newsStatusKeys,
     });
+  }
+
+  /*
+  
+
+  Bo'limlar bilan ishlash tugmalari va
+  ularni funksiyalari
+
+
+  */
+
+  @Action('addNewDepartment')
+  async addNewDepartment(@Ctx() ctx: ContextType) {
+    await ctx.scene.enter('AddDepartmentScene');
   }
 }

@@ -65,6 +65,10 @@ export const sendNewsKeys: InlineKeyboardMarkup = {
   ],
 };
 
+export const backToSendNews: InlineKeyboardMarkup = {
+  inline_keyboard: [[Markup.button.callback('◀️ Ortga', 'backToSendNews')]],
+};
+
 export const newsStatusKeys: InlineKeyboardMarkup = {
   inline_keyboard: [
     [Markup.button.callback('🔍 O‘qiganlarni ko‘rish', 'viewRead')],
