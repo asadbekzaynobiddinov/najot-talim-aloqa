@@ -3,6 +3,7 @@ import { TelegrafModule } from 'nestjs-telegraf';
 import { session } from 'telegraf';
 import { config } from 'src/config';
 import { BotUpdate } from './bot.update';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { BotUpdate } from './bot.update';
         },
       ],
     }),
+    AdminModule,
   ],
   providers: [BotUpdate],
 })
