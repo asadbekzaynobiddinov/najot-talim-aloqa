@@ -14,6 +14,8 @@ import {
   backToDepartments,
   departmentKeys,
   childDepartments,
+  editDepartment,
+  departmentPositions,
 } from 'src/common/constants/admin';
 import { ContextType } from 'src/common/types';
 import { Buttons } from '../../buttons/buttons.service';
@@ -226,12 +228,23 @@ export class AdminActions {
     });
   }
 
+  async deleteDepartmentRecursive(departmentName: string) {
+    const childDepartments = await this.departmentRepo.find({
+      where: { parent_name: departmentName },
+    });
+
+    for (const child of childDepartments) {
+      await this.deleteDepartmentRecursive(child.department_name);
+    }
+
+    await this.departmentRepo.delete({ department_name: departmentName });
+  }
+
   @Action('deleteDepartment')
   async deleteDepartment(@Ctx() ctx: ContextType) {
-    await this.departmentRepo.delete({
-      department_name: ctx.session.currentDepartment,
-    });
-    await ctx.answerCbQuery(`Bo'lim o'chirildi.`);
+    await this.deleteDepartmentRecursive(ctx.session.currentDepartment);
+    await ctx.answerCbQuery(`Bo'lim va barcha quyi bo‘limlar o‘chirildi.`);
+
     const buttons = await this.buttons.generateDepartmentKeys('departmentInfo');
     await ctx.editMessageText(mainMessageAdmin, {
       reply_markup: {
@@ -486,6 +499,48 @@ export class AdminActions {
       reply_markup: {
         inline_keyboard: buttons,
       },
+    });
+  }
+
+  @Action('editDepartment')
+  async editDepartment(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText(`<b>${ctx.session.currentDepartment}</b>`, {
+      parse_mode: 'HTML',
+      reply_markup: editDepartment,
+    });
+  }
+
+  @Action('managePosition')
+  async managePosition(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText(`<b>${ctx.session.currentDepartment}</b>`, {
+      parse_mode: 'HTML',
+      reply_markup: departmentPositions,
+    });
+  }
+
+  @Action('backToDepartment')
+  async backToDepartment(@Ctx() ctx: ContextType) {
+    const department = await this.departmentRepo.findOne({
+      where: { department_name: ctx.session.currentDepartment },
+      relations: ['child_departments'],
+    });
+    const buttons = [...departmentKeys.inline_keyboard];
+    if (department.child_departments.length !== 0) {
+      buttons.unshift(childDepartments.inline_keyboard[0]);
+    }
+    await ctx.editMessageText(`<b>${department.department_name}</b>`, {
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: buttons,
+      },
+    });
+  }
+
+  @Action('backToManageDepartment')
+  async backToManageDepartment(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText(`<b>${ctx.session.currentDepartment}</b>`, {
+      reply_markup: editDepartment,
+      parse_mode: 'HTML',
     });
   }
 }

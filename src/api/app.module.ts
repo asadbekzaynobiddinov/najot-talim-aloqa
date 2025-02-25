@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { config } from 'src/config';
 import { BotModule } from './bot/bot.module';
+import { CacheConfigModule } from './cache.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { BotModule } from './bot/bot.module';
       synchronize: true,
       entities: ['dist/core/entity/*.entity{.ts,.js}'],
     }),
+    CacheConfigModule,
     BotModule,
   ],
 })

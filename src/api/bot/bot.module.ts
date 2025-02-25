@@ -4,6 +4,9 @@ import { session } from 'telegraf';
 import { config } from 'src/config';
 import { BotUpdate } from './bot.update';
 import { AdminModule } from './admin/admin.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/core/entity/user.entity';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -22,7 +25,9 @@ import { AdminModule } from './admin/admin.module';
         },
       ],
     }),
+    TypeOrmModule.forFeature([User]),
     AdminModule,
+    UserModule,
   ],
   providers: [BotUpdate],
 })

@@ -17,6 +17,8 @@ export class Department extends BaseEntity {
   })
   parent_department: Department;
 
-  @OneToMany(() => Department, (department) => department.parent_department)
+  @OneToMany(() => Department, (department) => department.parent_department, {
+    onDelete: 'CASCADE',
+  })
   child_departments: Department[];
 }

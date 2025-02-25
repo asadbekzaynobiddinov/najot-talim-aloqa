@@ -89,3 +89,18 @@ export const newsStatusKeys: InlineKeyboardMarkup = {
 export const childDepartments: InlineKeyboardMarkup = {
   inline_keyboard: [[Markup.button.callback(`🏢Ichki bo'limiar`, 'childs')]],
 };
+
+export const editDepartment: InlineKeyboardMarkup = {
+  inline_keyboard: [
+    [Markup.button.callback('🔄 Lavozimlarni boshqarish', 'managePosition')],
+    [Markup.button.callback('◀️ Ortga', 'backToDepartment')],
+  ],
+};
+
+export const departmentPositions: InlineKeyboardMarkup = {
+  inline_keyboard: [
+    [Markup.button.callback(`Bo'lim boshliqlari`, 'managers')],
+    [Markup.button.callback('Hodimlar', 'employes')],
+    [Markup.button.callback('◀️ Ortga', 'backToManageDepartment')],
+  ],
+};
