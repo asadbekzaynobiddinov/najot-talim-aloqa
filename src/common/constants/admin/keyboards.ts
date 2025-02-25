@@ -42,12 +42,22 @@ export const newsKeys: InlineKeyboardMarkup = {
 export const manageDepartmentKeys: InlineKeyboardMarkup = {
   inline_keyboard: [
     [Markup.button.callback('➕ Yangi bo‘lim qo‘shish', 'addNewDepartment')],
-    [Markup.button.callback('✏️ Bo‘limni tahrirlash', 'editDepartment')],
-    [Markup.button.callback('❌ Bo‘limni o‘chirish', 'deleteDepartment')],
     [Markup.button.callback('📋 Bo‘limlar ro‘yxati', 'departmentList')],
-    [Markup.button.callback('🔄 Lavozimlarni boshqarish', 'managePosition')],
     [Markup.button.callback('◀️ Ortga', 'backToAdminMenu')],
   ],
+};
+
+export const departmentKeys: InlineKeyboardMarkup = {
+  inline_keyboard: [
+    [Markup.button.callback('➕ Ichki bo‘lim qo‘shish', 'addChildDEpartment')],
+    [Markup.button.callback('✏️ Bo‘limni tahrirlash', 'editDepartment')],
+    [Markup.button.callback('❌ Bo‘limni o‘chirish', 'deleteDepartment')],
+    [Markup.button.callback('◀️ Ortga', 'back')],
+  ],
+};
+
+export const backToDepartments: InlineKeyboardMarkup = {
+  inline_keyboard: [[Markup.button.callback('◀️ Ortga', 'backToDepartments')]],
 };
 
 export const sendNewsKeys: InlineKeyboardMarkup = {
@@ -74,4 +84,8 @@ export const newsStatusKeys: InlineKeyboardMarkup = {
     [Markup.button.callback('🔍 O‘qiganlarni ko‘rish', 'viewRead')],
     [Markup.button.callback('◀️ Ortga', 'backToNews')],
   ],
+};
+
+export const childDepartments: InlineKeyboardMarkup = {
+  inline_keyboard: [[Markup.button.callback(`🏢Ichki bo'limiar`, 'childs')]],
 };

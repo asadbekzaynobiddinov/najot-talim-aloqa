@@ -1,16 +1,13 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Scene, SceneEnter, On, Ctx, Action } from 'nestjs-telegraf';
-import {
-  mainMessageAdmin,
-  manageDepartmentKeys,
-} from 'src/common/constants/admin';
+import { childDepartments, departmentKeys } from 'src/common/constants/admin';
 import { ContextType } from 'src/common/types';
 import { Department } from 'src/core/entity/departments.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
 import { Markup } from 'telegraf';
 
-@Scene('AddDepartmentScene')
-export class AddDepartmentScene {
+@Scene('AddChildDepartmentScene')
+export class AddChildDepartmentScene {
   constructor(
     @InjectRepository(Department)
     private readonly departmentRepo: DepartmentRepository,
@@ -35,8 +32,19 @@ export class AddDepartmentScene {
 
     const department = this.departmentRepo.create({
       department_name,
+      parent_name: ctx.session.currentDepartment,
     });
     await this.departmentRepo.save(department);
+
+    const parentDepartment = await this.departmentRepo.findOne({
+      where: { department_name: department.parent_name },
+      relations: ['child_departments'],
+    });
+
+    parentDepartment.child_departments.push(department);
+
+    await this.departmentRepo.save(parentDepartment);
+
     ctx.session.lastMessage = await ctx.reply(
       `<b>${department.department_name}</b> ni tasdiqlaysizmi ?`,
       {
@@ -58,8 +66,20 @@ export class AddDepartmentScene {
     const [, id] = (ctx.update as any).callback_query.data.split('=');
     await this.departmentRepo.update(id, { is_active: true });
     await ctx.answerCbQuery(`Yangi bo'lim qo'shildi ✅.`, { show_alert: true });
-    await ctx.editMessageText(mainMessageAdmin, {
-      reply_markup: manageDepartmentKeys,
+    // console.log(ctx.session);
+    const department = await this.departmentRepo.findOne({
+      where: { department_name: ctx.session.currentDepartment },
+      relations: ['child_departments'],
+    });
+    const buttons = [...departmentKeys.inline_keyboard];
+    if (department.child_departments.length !== 0) {
+      buttons.unshift(childDepartments.inline_keyboard[0]);
+    }
+    await ctx.editMessageText(`<b>${department.department_name}</b>`, {
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: buttons,
+      },
     });
     await ctx.scene.leave();
   }
@@ -71,8 +91,19 @@ export class AddDepartmentScene {
     await ctx.answerCbQuery(`Yangi bo'lim qo'shish bekor qilindi ❌.`, {
       show_alert: true,
     });
-    await ctx.editMessageText(mainMessageAdmin, {
-      reply_markup: manageDepartmentKeys,
+    const department = await this.departmentRepo.findOne({
+      where: { department_name: ctx.session.currentDepartment },
+      relations: ['child_departments'],
+    });
+    const buttons = [...departmentKeys.inline_keyboard];
+    if (department.child_departments.length !== 0) {
+      buttons.unshift(childDepartments.inline_keyboard[0]);
+    }
+    await ctx.editMessageText(`<b>${department.department_name}</b>`, {
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: buttons,
+      },
     });
     await ctx.scene.leave();
   }

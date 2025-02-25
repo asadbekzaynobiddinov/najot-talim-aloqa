@@ -14,6 +14,9 @@ import { AdminModule } from './admin/admin.module';
         async (ctx, next) => {
           if (!ctx.session) {
             ctx.session = {};
+            ctx.session.manageDeparment = ctx.session.manageDeparment
+              ? ctx.session.manageDeparment
+              : {};
           }
           await next();
         },

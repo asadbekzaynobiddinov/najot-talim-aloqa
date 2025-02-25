@@ -5,5 +5,6 @@ export type ContextType = Context &
   SceneContext & {
     session: {
       lastMessage: any;
+      currentDepartment: string;
     };
   };
