@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserStatus } from 'src/common/enum';
 import { Department } from 'src/core/entity/departments.entity';
+import { User } from 'src/core/entity/user.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
+import { UserRepository } from 'src/core/repository/user.repository';
 import { Markup } from 'telegraf';
 import { IsNull } from 'typeorm';
 
@@ -10,6 +13,8 @@ export class Buttons {
   constructor(
     @InjectRepository(Department)
     private readonly departmentRepo: DepartmentRepository,
+    @InjectRepository(User)
+    private readonly userRepo: UserRepository,
   ) {}
 
   async generateDepartmentKeys(callback: string): Promise<any> {
@@ -53,5 +58,60 @@ export class Buttons {
     }
 
     return { buttons };
+  }
+
+  async generateUsersKeys(callback: string, page: number, status?: UserStatus) {
+    interface WhereI {
+      status?: UserStatus;
+    }
+    const where: WhereI = {};
+    if (status) {
+      where.status = status;
+    }
+
+    const take = 10;
+    const skip = (page - 1) * take;
+
+    const users = await this.userRepo.find({ where, take, skip });
+
+    if (users.length == 0) {
+      return false;
+    }
+
+    const text = users
+      .map(
+        (user, index) => `${index + 1}. ${user.first_name} ${user.last_name}`,
+      )
+      .join('\n');
+
+    const buttons = [];
+    for (let i = 0; i < users.length; i += 5) {
+      buttons.push(
+        users.slice(i, i + 5).map((p, index) => ({
+          text: (skip + i + index + 1).toString(),
+          callback_data: `${callback}=${p.id}`,
+        })),
+      );
+    }
+
+    const navigationButtons = [];
+    if (page > 1)
+      navigationButtons.push({
+        text: '⬅️ Oldingi',
+        callback_data: `${callback}=${page - 1}`,
+      });
+    if (users.length === take)
+      navigationButtons.push({
+        text: '➡️ Keyingi',
+        callback_data: `${callback}=${page + 1}`,
+      });
+
+    if (navigationButtons.length) {
+      buttons.push(navigationButtons);
+    }
+    return {
+      text,
+      buttons,
+    };
   }
 }

@@ -1,5 +1,5 @@
 export const mainMessageAdmin = `Kerakli bo'limni tanlang ☟`;
 
-export const waitingUsersMessage = `Ro'yxatdan o'tishni kutayotganlar soni: ?\n`;
+export const waitingUsersMessage = `Ro'yxatdan o'tishni kutayotganlar soni: `;
 
-export const allUsersMessage = `Kanalga ulangan jamoa a'zolari soni: ?`;
+export const allUsersMessage = `Botga ulangan jamoa a'zolari soni: `;

@@ -23,6 +23,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Department } from 'src/core/entity/departments.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
 import { Markup } from 'telegraf';
+import { User } from 'src/core/entity/user.entity';
+import { UserRepository } from 'src/core/repository/user.repository';
+import { UserStatus } from 'src/common/enum';
 
 @Update()
 export class AdminActions {
@@ -30,6 +33,7 @@ export class AdminActions {
     private readonly buttons: Buttons,
     @InjectRepository(Department)
     private readonly departmentRepo: DepartmentRepository,
+    @InjectRepository(User) private readonly userRepo: UserRepository,
   ) {}
   /*
 
@@ -42,9 +46,22 @@ export class AdminActions {
 
   @Action('manageUsers')
   async manageUsers(@Ctx() ctx: ContextType) {
-    await ctx.editMessageText(waitingUsersMessage + allUsersMessage, {
-      reply_markup: manageUsersKeys,
+    const countOfNotRegisteredUsers = await this.userRepo.count({
+      where: { status: UserStatus.INACTIVE },
     });
+    const countOfRegisteredUsers = await this.userRepo.count({
+      where: { status: UserStatus.ACTIVE },
+    });
+    await ctx.editMessageText(
+      waitingUsersMessage +
+        countOfNotRegisteredUsers +
+        '\n' +
+        allUsersMessage +
+        countOfRegisteredUsers,
+      {
+        reply_markup: manageUsersKeys,
+      },
+    );
   }
 
   @Action('news')
@@ -83,16 +100,179 @@ export class AdminActions {
 
   @Action('registrationRequests')
   async registrationRequests(@Ctx() ctx: ContextType) {
-    await ctx.editMessageText('Coming soon', {
-      reply_markup: backToManageUsers,
+    const result = await this.buttons.generateUsersKeys(
+      'vaitingUsers',
+      1,
+      UserStatus.INACTIVE,
+    );
+    if (!result) {
+      await ctx.answerCbQuery(
+        `Ro'yxatdan o'tishni kutayotganlar mavjud emas !`,
+        { show_alert: true },
+      );
+      return;
+    }
+    ctx.session.adminPage = 1;
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          ...backToManageUsers.inline_keyboard,
+        ],
+      },
+    });
+  }
+
+  @Action(/vaitingUsers/)
+  async vaitingUsers(@Ctx() ctx: ContextType) {
+    const [, id] = (ctx.update as any).callback_query.data.split('=');
+    ctx.session.selectedUser = id;
+    const user = await this.userRepo.findOne({ where: { id } });
+    await ctx.editMessageText(`<b>Bo'lim iyerarxiyasi:</b>` + user.department, {
+      reply_markup: {
+        inline_keyboard: [
+          [Markup.button.callback('Tasdiqlash', 'acceptRequest')],
+          [Markup.button.callback('Bekor Qilish', 'rejectRequest')],
+          [Markup.button.callback('◀️ Ortga', 'backToRequestList')],
+        ],
+      },
+      parse_mode: 'HTML',
+    });
+  }
+
+  @Action('backToRequestList')
+  async backToRequestList(@Ctx() ctx: ContextType) {
+    const result = await this.buttons.generateUsersKeys(
+      'vaitingUsers',
+      +ctx.session.adminPage || 1,
+      UserStatus.INACTIVE,
+    );
+    if (!result) {
+      const countOfNotRegisteredUsers = await this.userRepo.count({
+        where: { status: UserStatus.INACTIVE },
+      });
+      const countOfRegisteredUsers = await this.userRepo.count({
+        where: { status: UserStatus.ACTIVE },
+      });
+      await ctx.editMessageText(
+        waitingUsersMessage +
+          countOfNotRegisteredUsers +
+          '\n' +
+          allUsersMessage +
+          countOfRegisteredUsers,
+        {
+          reply_markup: manageUsersKeys,
+        },
+      );
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          ...backToManageUsers.inline_keyboard,
+        ],
+      },
+    });
+  }
+
+  @Action('acceptRequest')
+  async acceptRequest(@Ctx() ctx: ContextType) {
+    await this.userRepo.update(
+      { id: ctx.session.selectedUser },
+      { status: UserStatus.ACTIVE },
+    );
+    await ctx.answerCbQuery(`So'rov tasdiqlandi !`, { show_alert: true });
+    const result = await this.buttons.generateUsersKeys(
+      'vaitingUsers',
+      +ctx.session.adminPage || 1,
+      UserStatus.INACTIVE,
+    );
+    if (!result) {
+      const countOfNotRegisteredUsers = await this.userRepo.count({
+        where: { status: UserStatus.INACTIVE },
+      });
+      const countOfRegisteredUsers = await this.userRepo.count({
+        where: { status: UserStatus.ACTIVE },
+      });
+      await ctx.editMessageText(
+        waitingUsersMessage +
+          countOfNotRegisteredUsers +
+          '\n' +
+          allUsersMessage +
+          countOfRegisteredUsers,
+        {
+          reply_markup: manageUsersKeys,
+        },
+      );
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          ...backToManageUsers.inline_keyboard,
+        ],
+      },
+    });
+  }
+
+  @Action('rejectRequest')
+  async rejectRequest(@Ctx() ctx: ContextType) {
+    await this.userRepo.delete({ id: ctx.session.selectedUser });
+    const result = await this.buttons.generateUsersKeys(
+      'vaitingUsers',
+      +ctx.session.adminPage || 1,
+      UserStatus.INACTIVE,
+    );
+    await ctx.answerCbQuery(`So'rov bekor qilindi !`, { show_alert: true });
+    if (!result) {
+      const countOfNotRegisteredUsers = await this.userRepo.count({
+        where: { status: UserStatus.INACTIVE },
+      });
+      const countOfRegisteredUsers = await this.userRepo.count({
+        where: { status: UserStatus.ACTIVE },
+      });
+      await ctx.editMessageText(
+        waitingUsersMessage +
+          countOfNotRegisteredUsers +
+          '\n' +
+          allUsersMessage +
+          countOfRegisteredUsers,
+        {
+          reply_markup: manageUsersKeys,
+        },
+      );
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          ...backToManageUsers.inline_keyboard,
+        ],
+      },
     });
   }
 
   @Action('backToManageUsers')
   async backToManageUsers(@Ctx() ctx: ContextType) {
-    await ctx.editMessageText(waitingUsersMessage + allUsersMessage, {
-      reply_markup: manageUsersKeys,
+    const countOfNotRegisteredUsers = await this.userRepo.count({
+      where: { status: UserStatus.INACTIVE },
     });
+    const countOfRegisteredUsers = await this.userRepo.count({
+      where: { status: UserStatus.ACTIVE },
+    });
+    await ctx.editMessageText(
+      waitingUsersMessage +
+        countOfNotRegisteredUsers +
+        '\n' +
+        allUsersMessage +
+        countOfRegisteredUsers,
+      {
+        reply_markup: manageUsersKeys,
+      },
+    );
   }
 
   @Action('viewUsers')

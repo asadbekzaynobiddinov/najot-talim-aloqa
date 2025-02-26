@@ -6,9 +6,10 @@ import { AddChildDepartmentScene } from './update/scenes/add-child-department.sc
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Department } from 'src/core/entity/departments.entity';
 import { Buttons } from '../buttons/buttons.service';
+import { User } from 'src/core/entity/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Department])],
+  imports: [TypeOrmModule.forFeature([Department, User])],
   providers: [
     AdminActions,
     AdminCommands,

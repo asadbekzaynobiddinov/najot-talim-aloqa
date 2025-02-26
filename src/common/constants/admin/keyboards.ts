@@ -101,6 +101,6 @@ export const departmentPositions: InlineKeyboardMarkup = {
   inline_keyboard: [
     [Markup.button.callback(`Bo'lim boshliqlari`, 'managers')],
     [Markup.button.callback('Hodimlar', 'employes')],
-    [Markup.button.callback('◀️ Ortga', 'backToManageDepartment')],
+    [Markup.button.callback('◀️ Ortga◀️ Ortga', 'backToManageDepartment')],
   ],
 };

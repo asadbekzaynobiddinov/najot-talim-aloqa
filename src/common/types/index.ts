@@ -6,5 +6,9 @@ export type ContextType = Context &
     session: {
       lastMessage: any;
       currentDepartment: string;
+      userDepartment: string;
+      lastSelectedDepartment: string;
+      selectedUser: string;
+      adminPage: number;
     };
   };
