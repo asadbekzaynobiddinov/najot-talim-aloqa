@@ -42,6 +42,22 @@ export class AskLastName {
     const last_name = (ctx.update as any).message.text;
     const user: any = await this.cache.get(`${ctx.from.id}`);
     await this.cache.set(`${ctx.from.id}`, { ...user, last_name });
+    await ctx.reply('<b>Raqamni ulashish</b> tugmasini bosing:', {
+      parse_mode: 'HTML',
+      reply_markup: {
+        keyboard: [[Markup.button.contactRequest('Raqamni ulashish')]],
+        one_time_keyboard: true,
+        resize_keyboard: true,
+        remove_keyboard: true,
+      },
+    });
+  }
+
+  @On('contact')
+  async onContact(@Ctx() ctx: ContextType) {
+    const phone_number = (ctx.update as any).message.contact.phone_number;
+    const user: any = await this.cache.get(`${ctx.from.id}`);
+    await this.cache.set(`${ctx.from.id}`, { ...user, phone_number });
     await ctx.scene.enter('AskDepartmentScene');
   }
 }
@@ -119,6 +135,7 @@ export class AskDepartmentScene {
       `Ma'lumotlarni tasdiqlaylaysizmi:\n` +
         `<b>Ism:</b> ${obj.first_name}\n` +
         `<b>Familya:</b> ${obj.last_name}\n` +
+        `<b>Raqam:</b> ${obj.phone_number}\n` +
         `<b>Bo'lim:</b> ${departments[departments.length - 1]}`,
       {
         parse_mode: 'HTML',
@@ -136,16 +153,19 @@ export class AskDepartmentScene {
   async accept(@Ctx() ctx: ContextType) {
     const user: any = await this.cache.get(`${ctx.from.id}`);
     console.log(user);
-    const newUser = await this.userRepo.create({
+    const newUser = this.userRepo.create({
       telegram_id: `${user.telegram_id}`,
       first_name: user.first_name,
       last_name: user.last_name,
+      phone_number: user.phone_number,
       department: user.department,
     });
     await this.cache.del(`${ctx.from.id}`);
     await this.userRepo.save(newUser);
-    await ctx.editMessageText(
+    await ctx.deleteMessage();
+    await ctx.reply(
       `Malumotlaringiz saqlandi iltimos tasdiqlanishini kuting !`,
+      Markup.removeKeyboard(),
     );
     await ctx.scene.leave();
   }
@@ -158,7 +178,9 @@ export class AskDepartmentScene {
     ctx.session.lastSelectedDepartment = '';
     ctx.session.userDepartment = '';
     await this.cache.del(`${ctx.from.id}`);
-    await ctx.editMessageText('Bekorr qilindi !');
+    await ctx.deleteMessage();
+    await ctx.reply('Bekorr qilindi !', Markup.removeKeyboard());
+    await ctx.scene.leave();
   }
 
   @Action('backToRegister')
@@ -183,6 +205,26 @@ export class AskDepartmentScene {
         });
         break;
       }
+      case 'HR ish yuritish':
+      case 'Recruiting':
+      case 'Oʻqitish va rivojlantirish': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'HR Boʻlimi',
+          'departmentForRegister',
+        );
+        ctx.session.lastSelectedDepartment = 'HR Boʻlimi';
+        await ctx.editMessageText(`Bo'limingizni tanlang:`, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToRegister')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'Metodika ishlari boʻlimi':
+      case 'Nazorat va rejalashtirish':
       case 'Ustozlar': {
         const buttons = await this.buttons.generateChildDepartmentKeys(
           'Oʻquv Boʻlimi',

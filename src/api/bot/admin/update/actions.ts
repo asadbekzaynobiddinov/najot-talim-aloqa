@@ -128,16 +128,21 @@ export class AdminActions {
     const [, id] = (ctx.update as any).callback_query.data.split('=');
     ctx.session.selectedUser = id;
     const user = await this.userRepo.findOne({ where: { id } });
-    await ctx.editMessageText(`<b>Bo'lim iyerarxiyasi:</b>` + user.department, {
-      reply_markup: {
-        inline_keyboard: [
-          [Markup.button.callback('Tasdiqlash', 'acceptRequest')],
-          [Markup.button.callback('Bekor Qilish', 'rejectRequest')],
-          [Markup.button.callback('◀️ Ortga', 'backToRequestList')],
-        ],
+    await ctx.editMessageText(
+      `<b>Raqami: </b>${user.phone_number}\n` +
+        `<b>Bo'lim iyerarxiyasi:</b>` +
+        user.department,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [Markup.button.callback('Tasdiqlash', 'acceptRequest')],
+            [Markup.button.callback('Bekor Qilish', 'rejectRequest')],
+            [Markup.button.callback('◀️ Ortga', 'backToRequestList')],
+          ],
+        },
+        parse_mode: 'HTML',
       },
-      parse_mode: 'HTML',
-    });
+    );
   }
 
   @Action('backToRequestList')
@@ -145,6 +150,7 @@ export class AdminActions {
     const result = await this.buttons.generateUsersKeys(
       'vaitingUsers',
       +ctx.session.adminPage || 1,
+      'NavVatingUsers',
       UserStatus.INACTIVE,
     );
     if (!result) {
@@ -166,6 +172,45 @@ export class AdminActions {
       );
       return;
     }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          ...backToManageUsers.inline_keyboard,
+        ],
+      },
+    });
+  }
+
+  @Action(/NavVatingUsers/)
+  async NavVatingUsers(@Ctx() ctx: ContextType) {
+    const [, page] = (ctx.update as any).callback_query.data.split('=');
+    const result = await this.buttons.generateUsersKeys(
+      'vaitingUsers',
+      +page,
+      'NavVatingUsers',
+      UserStatus.INACTIVE,
+    );
+    if (!result) {
+      const countOfNotRegisteredUsers = await this.userRepo.count({
+        where: { status: UserStatus.INACTIVE },
+      });
+      const countOfRegisteredUsers = await this.userRepo.count({
+        where: { status: UserStatus.ACTIVE },
+      });
+      await ctx.editMessageText(
+        waitingUsersMessage +
+          countOfNotRegisteredUsers +
+          '\n' +
+          allUsersMessage +
+          countOfRegisteredUsers,
+        {
+          reply_markup: manageUsersKeys,
+        },
+      );
+      return;
+    }
+    ctx.session.adminPage = +page;
     await ctx.editMessageText(result.text, {
       reply_markup: {
         inline_keyboard: [
@@ -277,9 +322,266 @@ export class AdminActions {
 
   @Action('viewUsers')
   async viewUsers(@Ctx() ctx: ContextType) {
-    await ctx.editMessageText('Coming soon', {
-      reply_markup: backToManageUsers,
+    const buttons = await this.buttons.generateDepartmentKeys(
+      'departmentForViewUsers',
+    );
+    await ctx.editMessageText(mainMessageAdmin, {
+      reply_markup: {
+        inline_keyboard: [
+          ...buttons.buttons,
+          ...backToManageUsers.inline_keyboard,
+        ],
+      },
     });
+  }
+
+  @Action(/departmentForViewUsers/)
+  async departmentForViewUsers(@Ctx() ctx: ContextType) {
+    const [, department] = (ctx.update as any).callback_query.data.split(':');
+    const depInfo = await this.departmentRepo.findOne({
+      where: { department_name: department },
+      relations: ['child_departments'],
+    });
+    if (depInfo.child_departments.length != 0) {
+      const buttons = await this.buttons.generateChildDepartmentKeys(
+        department,
+        'departmentForViewUsers',
+      );
+      await ctx.editMessageText(mainMessageAdmin, {
+        reply_markup: {
+          inline_keyboard: [
+            ...buttons.buttons,
+            [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+          ],
+        },
+      });
+      return;
+    }
+    const reslt = await this.buttons.generateUsersKeys(
+      'ViewThisUser',
+      1,
+      'AdminNavigationForUser',
+      UserStatus.ACTIVE,
+      department,
+    );
+    if (!reslt) {
+      await ctx.answerCbQuery('Hodimlar mavjud emas !', { show_alert: true });
+      return;
+    }
+    ctx.session.searchDepartment = department;
+    await ctx.editMessageText(reslt.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...reslt.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+        ],
+      },
+    });
+  }
+
+  @Action(/AdminNavigationForUser/)
+  async AdminNavigationForUser(@Ctx() ctx: ContextType) {
+    const [, page] = (ctx.update as any).callback_query.data.split('=');
+    const result = await this.buttons.generateUsersKeys(
+      'ViewThisUser',
+      +page,
+      'AdminNavigationForUser',
+      UserStatus.INACTIVE,
+    );
+    if (!result) {
+      await ctx.answerCbQuery('Hodimlar mavjud emas !', { show_alert: true });
+      return;
+    }
+    ctx.session.adminPage = +page;
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+        ],
+      },
+    });
+  }
+
+  @Action('backToViewDepartment')
+  async backToViewDepartment(@Ctx() ctx: ContextType) {
+    console.log(ctx.session.searchDepartment);
+    switch (ctx.session.searchDepartment) {
+      case 'HR Boʻlimi':
+      case 'Oʻquv Boʻlimi': {
+        const buttons = await this.buttons.generateDepartmentKeys(
+          'departmentForViewUsers',
+        );
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              ...backToManageUsers.inline_keyboard,
+            ],
+          },
+        });
+        break;
+      }
+      case 'HR ish yuritish':
+      case 'Recruiting':
+      case 'Oʻqitish va rivojlantirish': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'HR Boʻlimi',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'HR Boʻlimi';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'Metodika ishlari boʻlimi':
+      case 'Nazorat va rejalashtirish':
+      case 'Ustozlar': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'Oʻquv Boʻlimi',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'Oʻquv Boʻlimi';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'Marketing yoʻnalishi':
+      case 'Dizayn yoʻnalishi':
+      case 'Dasturlash yoʻnalishi': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'Ustozlar',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'Ustozlar';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'Dasturlash Bootcamp':
+      case 'Dasturlash Standart': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'Dasturlash yoʻnalishi',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'Dasturlash yoʻnalishi';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'Full Stack':
+      case 'Backend':
+      case 'Frontend': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'Dasturlash Bootcamp',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'Dasturlash Bootcamp';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'Python':
+      case 'ReactJS': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'Dasturlash Standart',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'Dasturlash Standart';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'Dizayn Bootcamp':
+      case 'Dizayn Standart': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'Dizayn yoʻnalishi',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'Dizayn yoʻnalishi';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'Graphic Design':
+      case 'Motion Graphics': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'Dizayn Standart',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'Dizayn Standart';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      case 'SMM Pro': {
+        const buttons = await this.buttons.generateChildDepartmentKeys(
+          'Marketing yoʻnalishi',
+          'departmentForViewUsers',
+        );
+        ctx.session.searchDepartment = 'Marketing yoʻnalishi';
+        await ctx.editMessageText(mainMessageAdmin, {
+          reply_markup: {
+            inline_keyboard: [
+              ...buttons.buttons,
+              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+            ],
+          },
+        });
+        break;
+      }
+      default:
+        console.log(ctx.session.searchDepartment);
+        break;
+    }
   }
 
   /*

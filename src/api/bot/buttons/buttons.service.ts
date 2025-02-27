@@ -6,7 +6,7 @@ import { User } from 'src/core/entity/user.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
 import { UserRepository } from 'src/core/repository/user.repository';
 import { Markup } from 'telegraf';
-import { IsNull } from 'typeorm';
+import { IsNull, Like } from 'typeorm';
 
 @Injectable()
 export class Buttons {
@@ -60,13 +60,23 @@ export class Buttons {
     return { buttons };
   }
 
-  async generateUsersKeys(callback: string, page: number, status?: UserStatus) {
+  async generateUsersKeys(
+    callback: string,
+    page: number,
+    navigationCallback: string,
+    status?: UserStatus,
+    department?: string,
+  ) {
     interface WhereI {
       status?: UserStatus;
+      department?: any;
     }
     const where: WhereI = {};
     if (status) {
       where.status = status;
+    }
+    if (department) {
+      where.department = Like(`%${department}%`);
     }
 
     const take = 10;
@@ -98,12 +108,12 @@ export class Buttons {
     if (page > 1)
       navigationButtons.push({
         text: '⬅️ Oldingi',
-        callback_data: `${callback}=${page - 1}`,
+        callback_data: `${navigationCallback}=${page - 1}`,
       });
     if (users.length === take)
       navigationButtons.push({
         text: '➡️ Keyingi',
-        callback_data: `${callback}=${page + 1}`,
+        callback_data: `${navigationCallback}=${page + 1}`,
       });
 
     if (navigationButtons.length) {

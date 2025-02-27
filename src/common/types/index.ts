@@ -10,5 +10,6 @@ export type ContextType = Context &
       lastSelectedDepartment: string;
       selectedUser: string;
       adminPage: number;
+      searchDepartment: string;
     };
   };

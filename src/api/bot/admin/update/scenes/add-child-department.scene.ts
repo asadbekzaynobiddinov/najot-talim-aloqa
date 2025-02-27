@@ -66,7 +66,6 @@ export class AddChildDepartmentScene {
     const [, id] = (ctx.update as any).callback_query.data.split('=');
     await this.departmentRepo.update(id, { is_active: true });
     await ctx.answerCbQuery(`Yangi bo'lim qo'shildi ✅.`, { show_alert: true });
-    // console.log(ctx.session);
     const department = await this.departmentRepo.findOne({
       where: { department_name: ctx.session.currentDepartment },
       relations: ['child_departments'],
