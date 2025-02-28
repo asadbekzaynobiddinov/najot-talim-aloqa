@@ -11,5 +11,6 @@ export type ContextType = Context &
       selectedUser: string;
       adminPage: number;
       searchDepartment: string;
+      usersNewPhone: string;
     };
   };

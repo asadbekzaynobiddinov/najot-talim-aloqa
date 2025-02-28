@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Department } from 'src/core/entity/departments.entity';
 import { Buttons } from '../buttons/buttons.service';
 import { User } from 'src/core/entity/user.entity';
+import { ChangeUsersPhone } from './update/scenes/change-users-phone';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Department, User])],
@@ -15,6 +16,7 @@ import { User } from 'src/core/entity/user.entity';
     AdminCommands,
     AddDepartmentScene,
     AddChildDepartmentScene,
+    ChangeUsersPhone,
     Buttons,
   ],
 })

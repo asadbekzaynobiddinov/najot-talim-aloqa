@@ -17,6 +17,7 @@ import {
   editDepartment,
   departmentPositions,
   userKeysForAdmin,
+  editUserKeys,
 } from 'src/common/constants/admin';
 import { ContextType } from 'src/common/types';
 import { Buttons } from '../../buttons/buttons.service';
@@ -26,7 +27,7 @@ import { DepartmentRepository } from 'src/core/repository/department.repository'
 import { Markup } from 'telegraf';
 import { User } from 'src/core/entity/user.entity';
 import { UserRepository } from 'src/core/repository/user.repository';
-import { UserStatus } from 'src/common/enum';
+import { UserRole, UserStatus } from 'src/common/enum';
 
 @Update()
 export class AdminActions {
@@ -386,11 +387,104 @@ export class AdminActions {
   @Action(/ViewThisUser/)
   async viewThisUser(@Ctx() ctx: ContextType) {
     const [, id] = (ctx.update as any).callback_query.data.split('=');
+    ctx.session.selectedUser = id;
     const user = await this.userRepo.findOne({ where: { id } });
     await ctx.editMessageText(
       `<b>Ismi:</b> ${user.first_name}\n` +
         `<b>Familyasi:</b> ${user.last_name}\n` +
         `<b>Raqami:</b> ${user.phone_number}\n` +
+        `<b>LavozimiL</b> ${user.role}\n` +
+        `<b>Bo'limi:</b> ${user.department}`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: userKeysForAdmin,
+      },
+    );
+  }
+
+  @Action('deleteUser')
+  async deleteUser(@Ctx() ctx: ContextType) {
+    await this.userRepo.delete({ id: ctx.session.selectedUser });
+    const reslt = await this.buttons.generateUsersKeys(
+      'ViewThisUser',
+      ctx.session.adminPage || 1,
+      'AdminNavigationForUser',
+      UserStatus.ACTIVE,
+      ctx.session.searchDepartment,
+    );
+    if (!reslt) {
+      await ctx.editMessageText(mainMessageAdmin, {
+        reply_markup: manageUsersKeys,
+      });
+      return;
+    }
+    await ctx.editMessageText(reslt.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...reslt.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+        ],
+      },
+    });
+  }
+
+  @Action('editUser')
+  async editUser(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText(mainMessageAdmin, { reply_markup: editUserKeys });
+  }
+
+  @Action('backToUserInformation')
+  async backToUserInformation(@Ctx() ctx: ContextType) {
+    const user = await this.userRepo.findOne({
+      where: { id: ctx.session.selectedUser },
+    });
+    await ctx.editMessageText(
+      `<b>Ismi:</b> ${user.first_name}\n` +
+        `<b>Familyasi:</b> ${user.last_name}\n` +
+        `<b>Raqami:</b> ${user.phone_number}\n` +
+        `<b>LavozimiL</b> ${user.role}\n` +
+        `<b>Bo'limi:</b> ${user.department}`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: userKeysForAdmin,
+      },
+    );
+  }
+
+  @Action('editUsersPhone')
+  async editUsersPhone(@Ctx() ctx: ContextType) {
+    await ctx.scene.enter('ChangeUsersPhone');
+  }
+
+  @Action('changeUsersPosition')
+  async changeUsersPosition(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText(mainMessageAdmin, {
+      reply_markup: {
+        inline_keyboard: [
+          [Markup.button.callback(`Bo'lim boshligi qilish`, 'makeManager')],
+          [Markup.button.callback('◀️ Ortga', 'backToUserInformation')],
+        ],
+      },
+    });
+  }
+
+  @Action('makeManager')
+  async makeManager(@Ctx() ctx: ContextType) {
+    await this.userRepo.update(
+      { id: ctx.session.selectedUser },
+      { role: UserRole.MANAGER },
+    );
+    await ctx.answerCbQuery(`Bu foydalanuvchi endi bo'lim boshlig'i`, {
+      show_alert: true,
+    });
+    const user = await this.userRepo.findOne({
+      where: { id: ctx.session.selectedUser },
+    });
+    await ctx.editMessageText(
+      `<b>Ismi:</b> ${user.first_name}\n` +
+        `<b>Familyasi:</b> ${user.last_name}\n` +
+        `<b>Raqami:</b> ${user.phone_number}\n` +
+        `<b>LavozimiL</b> ${user.role}\n` +
         `<b>Bo'limi:</b> ${user.department}`,
       {
         parse_mode: 'HTML',

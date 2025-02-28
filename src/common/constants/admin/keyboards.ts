@@ -112,3 +112,27 @@ export const userKeysForAdmin: InlineKeyboardMarkup = {
     [Markup.button.callback('◀️ Ortga', 'backToUsersList')],
   ],
 };
+
+export const editUserKeys: InlineKeyboardMarkup = {
+  inline_keyboard: [
+    [
+      Markup.button.callback(
+        '📞 Telefon raqamini o‘zgartiirish',
+        'editUsersPhone',
+      ),
+    ],
+    [
+      Markup.button.callback(
+        '🏬 Boshqa bo‘limga o‘tkazish',
+        'changeUsersDepartment',
+      ),
+    ],
+    [
+      Markup.button.callback(
+        '💼 Lavozimini o‘zgartirish',
+        'changeUsersPosition',
+      ),
+    ],
+    [Markup.button.callback('◀️ Ortga', 'backToUserInformation')],
+  ],
+};
