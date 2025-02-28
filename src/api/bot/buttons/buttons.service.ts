@@ -82,7 +82,12 @@ export class Buttons {
     const take = 10;
     const skip = (page - 1) * take;
 
-    const users = await this.userRepo.find({ where, take, skip });
+    const users = await this.userRepo.find({
+      where,
+      take,
+      skip,
+      order: { created_at: 'DESC' },
+    });
 
     if (users.length == 0) {
       return false;

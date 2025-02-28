@@ -101,6 +101,14 @@ export const departmentPositions: InlineKeyboardMarkup = {
   inline_keyboard: [
     [Markup.button.callback(`Bo'lim boshliqlari`, 'managers')],
     [Markup.button.callback('Hodimlar', 'employes')],
-    [Markup.button.callback('◀️ Ortga◀️ Ortga', 'backToManageDepartment')],
+    [Markup.button.callback('◀️ Ortga', 'backToManageDepartment')],
+  ],
+};
+
+export const userKeysForAdmin: InlineKeyboardMarkup = {
+  inline_keyboard: [
+    [Markup.button.callback('✏️ Foydalanuvchini tahrirlash', 'editUser')],
+    [Markup.button.callback('❌ Foydalanuvchini o‘chirish', 'deleteUser')],
+    [Markup.button.callback('◀️ Ortga', 'backToUsersList')],
   ],
 };

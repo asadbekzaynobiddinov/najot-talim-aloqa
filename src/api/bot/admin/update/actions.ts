@@ -16,6 +16,7 @@ import {
   childDepartments,
   editDepartment,
   departmentPositions,
+  userKeysForAdmin,
 } from 'src/common/constants/admin';
 import { ContextType } from 'src/common/types';
 import { Buttons } from '../../buttons/buttons.service';
@@ -103,6 +104,7 @@ export class AdminActions {
     const result = await this.buttons.generateUsersKeys(
       'vaitingUsers',
       1,
+      'NavVatingUsers',
       UserStatus.INACTIVE,
     );
     if (!result) {
@@ -231,6 +233,7 @@ export class AdminActions {
     const result = await this.buttons.generateUsersKeys(
       'vaitingUsers',
       +ctx.session.adminPage || 1,
+      'NavVatingUsers',
       UserStatus.INACTIVE,
     );
     if (!result) {
@@ -268,6 +271,7 @@ export class AdminActions {
     const result = await this.buttons.generateUsersKeys(
       'vaitingUsers',
       +ctx.session.adminPage || 1,
+      'NavVatingUsers',
       UserStatus.INACTIVE,
     );
     await ctx.answerCbQuery(`So'rov bekor qilindi !`, { show_alert: true });
@@ -338,6 +342,7 @@ export class AdminActions {
   @Action(/departmentForViewUsers/)
   async departmentForViewUsers(@Ctx() ctx: ContextType) {
     const [, department] = (ctx.update as any).callback_query.data.split(':');
+    ctx.session.searchDepartment = department;
     const depInfo = await this.departmentRepo.findOne({
       where: { department_name: department },
       relations: ['child_departments'],
@@ -368,7 +373,45 @@ export class AdminActions {
       await ctx.answerCbQuery('Hodimlar mavjud emas !', { show_alert: true });
       return;
     }
-    ctx.session.searchDepartment = department;
+    await ctx.editMessageText(reslt.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...reslt.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+        ],
+      },
+    });
+  }
+
+  @Action(/ViewThisUser/)
+  async viewThisUser(@Ctx() ctx: ContextType) {
+    const [, id] = (ctx.update as any).callback_query.data.split('=');
+    const user = await this.userRepo.findOne({ where: { id } });
+    await ctx.editMessageText(
+      `<b>Ismi:</b> ${user.first_name}\n` +
+        `<b>Familyasi:</b> ${user.last_name}\n` +
+        `<b>Raqami:</b> ${user.phone_number}\n` +
+        `<b>Bo'limi:</b> ${user.department}`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: userKeysForAdmin,
+      },
+    );
+  }
+
+  @Action('backToUsersList')
+  async backToUsersList(@Ctx() ctx: ContextType) {
+    const reslt = await this.buttons.generateUsersKeys(
+      'ViewThisUser',
+      ctx.session.adminPage || 1,
+      'AdminNavigationForUser',
+      UserStatus.ACTIVE,
+      ctx.session.searchDepartment,
+    );
+    if (!reslt) {
+      await ctx.answerCbQuery('Hodimlar mavjud emas !', { show_alert: true });
+      return;
+    }
     await ctx.editMessageText(reslt.text, {
       reply_markup: {
         inline_keyboard: [
@@ -412,14 +455,18 @@ export class AdminActions {
         const buttons = await this.buttons.generateDepartmentKeys(
           'departmentForViewUsers',
         );
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              ...backToManageUsers.inline_keyboard,
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                ...backToManageUsers.inline_keyboard,
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'HR ish yuritish':
@@ -430,14 +477,18 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'HR Boʻlimi';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'Metodika ishlari boʻlimi':
@@ -448,14 +499,18 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'Oʻquv Boʻlimi';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'Marketing yoʻnalishi':
@@ -466,14 +521,18 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'Ustozlar';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'Dasturlash Bootcamp':
@@ -483,14 +542,18 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'Dasturlash yoʻnalishi';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'Full Stack':
@@ -501,14 +564,18 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'Dasturlash Bootcamp';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'Python':
@@ -518,14 +585,18 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'Dasturlash Standart';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'Dizayn Bootcamp':
@@ -535,14 +606,18 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'Dizayn yoʻnalishi';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'Graphic Design':
@@ -552,14 +627,18 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'Dizayn Standart';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       case 'SMM Pro': {
@@ -568,18 +647,22 @@ export class AdminActions {
           'departmentForViewUsers',
         );
         ctx.session.searchDepartment = 'Marketing yoʻnalishi';
-        await ctx.editMessageText(mainMessageAdmin, {
-          reply_markup: {
-            inline_keyboard: [
-              ...buttons.buttons,
-              [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
-            ],
-          },
-        });
+        try {
+          await ctx.editMessageText(mainMessageAdmin, {
+            reply_markup: {
+              inline_keyboard: [
+                ...buttons.buttons,
+                [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+              ],
+            },
+          });
+        } catch (error) {
+          console.log(error.message);
+        }
         break;
       }
       default:
-        console.log(ctx.session.searchDepartment);
+        console.log('default');
         break;
     }
   }
@@ -769,7 +852,7 @@ export class AdminActions {
 
   @Action('back')
   async back(@Ctx() ctx: ContextType) {
-    console.log(ctx.session.currentDepartment);
+    console.log('back');
     switch (ctx.session.currentDepartment) {
       case 'Oʻquv Boʻlimi':
       case 'HR Boʻlimi': {
@@ -867,10 +950,10 @@ export class AdminActions {
       case 'Backend':
       case 'Frontend': {
         const department = await this.departmentRepo.findOne({
-          where: { department_name: 'Dasturlash Standart' },
+          where: { department_name: 'Dasturlash Bootcamp' },
           relations: ['child_departments'],
         });
-        ctx.session.currentDepartment = 'Dasturlash Standart';
+        ctx.session.currentDepartment = 'Dasturlash Bootcamp';
         const buttons = [...departmentKeys.inline_keyboard];
         if (department.child_departments.length !== 0) {
           buttons.unshift(childDepartments.inline_keyboard[0]);
@@ -886,10 +969,10 @@ export class AdminActions {
       case 'Python':
       case 'ReactJS': {
         const department = await this.departmentRepo.findOne({
-          where: { department_name: 'Dasturlash Bootcamp' },
+          where: { department_name: 'Dasturlash Standart' },
           relations: ['child_departments'],
         });
-        ctx.session.currentDepartment = 'Dasturlash Bootcamp';
+        ctx.session.currentDepartment = 'Dasturlash Standart';
         const buttons = [...departmentKeys.inline_keyboard];
         if (department.child_departments.length !== 0) {
           buttons.unshift(childDepartments.inline_keyboard[0]);
