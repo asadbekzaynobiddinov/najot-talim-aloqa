@@ -50,7 +50,7 @@ export const manageDepartmentKeys: InlineKeyboardMarkup = {
 export const departmentKeys: InlineKeyboardMarkup = {
   inline_keyboard: [
     [Markup.button.callback('➕ Ichki bo‘lim qo‘shish', 'addChildDEpartment')],
-    [Markup.button.callback('✏️ Bo‘limni tahrirlash', 'editDepartment')],
+    // [Markup.button.callback('✏️ Bo‘limni tahrirlash', 'editDepartment')],
     [Markup.button.callback('❌ Bo‘limni o‘chirish', 'deleteDepartment')],
     [Markup.button.callback('◀️ Ortga', 'back')],
   ],

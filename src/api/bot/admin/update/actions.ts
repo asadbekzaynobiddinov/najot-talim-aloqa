@@ -15,7 +15,7 @@ import {
   departmentKeys,
   childDepartments,
   editDepartment,
-  departmentPositions,
+  // departmentPositions,
   userKeysForAdmin,
   editUserKeys,
 } from 'src/common/constants/admin';
@@ -1427,21 +1427,21 @@ export class AdminActions {
     });
   }
 
-  @Action('editDepartment')
-  async editDepartment(@Ctx() ctx: ContextType) {
-    await ctx.editMessageText(`<b>${ctx.session.currentDepartment}</b>`, {
-      parse_mode: 'HTML',
-      reply_markup: editDepartment,
-    });
-  }
+  // @Action('editDepartment')
+  // async editDepartment(@Ctx() ctx: ContextType) {
+  //   await ctx.editMessageText(`<b>${ctx.session.currentDepartment}</b>`, {
+  //     parse_mode: 'HTML',
+  //     reply_markup: editDepartment,
+  //   });
+  // }
 
-  @Action('managePosition')
-  async managePosition(@Ctx() ctx: ContextType) {
-    await ctx.editMessageText(`<b>${ctx.session.currentDepartment}</b>`, {
-      parse_mode: 'HTML',
-      reply_markup: departmentPositions,
-    });
-  }
+  // @Action('managePosition')
+  // async managePosition(@Ctx() ctx: ContextType) {
+  //   await ctx.editMessageText(`<b>${ctx.session.currentDepartment}</b>`, {
+  //     parse_mode: 'HTML',
+  //     reply_markup: departmentPositions,
+  //   });
+  // }
 
   @Action('backToDepartment')
   async backToDepartment(@Ctx() ctx: ContextType) {
