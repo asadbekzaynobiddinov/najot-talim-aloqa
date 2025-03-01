@@ -12,5 +12,7 @@ export type ContextType = Context &
       adminPage: number;
       searchDepartment: string;
       usersNewPhone: string;
+      departmentForChange: string;
+      usersNewDepartment: string;
     };
   };

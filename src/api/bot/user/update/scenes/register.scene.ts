@@ -190,7 +190,6 @@ export class AskDepartmentScene {
       .split(':')
       .slice(0, ctx.session.userDepartment.split(':').length - 1)
       .join(':');
-    console.log(dep);
     ctx.session.userDepartment = dep;
     switch (ctx.session.lastSelectedDepartment) {
       case 'HR Boʻlimi':
