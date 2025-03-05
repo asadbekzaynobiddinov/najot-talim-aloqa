@@ -3,6 +3,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { Inject } from '@nestjs/common';
 import { ContextType } from 'src/common/types';
 import { appealMenu, mainMessageAdmin } from 'src/common/constants/admin';
+import { Markup } from 'telegraf';
 
 @Scene('GetAppealsText')
 export class GetAppealsText {
@@ -18,7 +19,14 @@ export class GetAppealsText {
     const appeal: any = await this.cache.get(`appeal${ctx.from.id}`);
     await this.cache.set(`appeal${ctx.from.id}`, { ...appeal, text });
     console.log(text);
-    await ctx.reply(mainMessageAdmin, { reply_markup: appealMenu });
+    await ctx.reply(mainMessageAdmin, {
+      reply_markup: {
+        inline_keyboard: [
+          ...appealMenu.inline_keyboard,
+          [Markup.button.callback('◀️ Ortga', 'backToSendNews')],
+        ],
+      },
+    });
     await ctx.scene.leave();
   }
 }
@@ -39,7 +47,14 @@ export class GetAppealsFile {
       ...appeal,
       file_id: file.file_id,
     });
-    await ctx.reply(mainMessageAdmin, { reply_markup: appealMenu });
+    await ctx.reply(mainMessageAdmin, {
+      reply_markup: {
+        inline_keyboard: [
+          ...appealMenu.inline_keyboard,
+          [Markup.button.callback('◀️ Ortga', 'backToSendNews')],
+        ],
+      },
+    });
     await ctx.scene.leave();
   }
 }

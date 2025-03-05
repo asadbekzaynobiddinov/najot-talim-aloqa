@@ -14,5 +14,7 @@ export type ContextType = Context &
       usersNewPhone: string;
       departmentForChange: string;
       usersNewDepartment: string;
+      departmentForSendAppeal: string;
+      selectedRole: string;
     };
   };

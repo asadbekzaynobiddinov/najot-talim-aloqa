@@ -13,12 +13,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Department } from 'src/core/entity/departments.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
 import { Markup } from 'telegraf';
-import { User } from 'src/core/entity/user.entity';
-import { UserRepository } from 'src/core/repository/user.repository';
-import { Inject } from '@nestjs/common';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { Appeals } from 'src/core/entity/appeal.entity';
-import { AppealRepository } from 'src/core/repository/appeal.repository';
 
 @Update()
 export class ManageDepartmentsActions {
@@ -26,9 +20,6 @@ export class ManageDepartmentsActions {
     private readonly buttons: Buttons,
     @InjectRepository(Department)
     private readonly departmentRepo: DepartmentRepository,
-    @InjectRepository(User) private readonly userRepo: UserRepository,
-    @Inject(CACHE_MANAGER) private readonly cache: Cache,
-    @InjectRepository(Appeals) private readonly appealRepo: AppealRepository,
   ) {}
   @Action('addNewDepartment')
   async addNewDepartment(@Ctx() ctx: ContextType) {

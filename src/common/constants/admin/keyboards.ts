@@ -142,6 +142,5 @@ export const appealMenu: InlineKeyboardMarkup = {
     [Markup.button.callback('📝 Murojaat matni', 'textOfAppeal')],
     [Markup.button.callback('📎 Fayl qo‘shish', 'addFile')],
     [Markup.button.callback('📤 Yuborish', 'sendAppeal')],
-    [Markup.button.callback('◀️ Ortga', 'backToSendNews')],
   ],
 };
