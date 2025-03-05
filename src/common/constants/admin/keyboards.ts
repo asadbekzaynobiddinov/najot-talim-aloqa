@@ -136,3 +136,12 @@ export const editUserKeys: InlineKeyboardMarkup = {
     [Markup.button.callback('◀️ Ortga', 'backToUserInformation')],
   ],
 };
+
+export const appealMenu: InlineKeyboardMarkup = {
+  inline_keyboard: [
+    [Markup.button.callback('📝 Murojaat matni', 'textOfAppeal')],
+    [Markup.button.callback('📎 Fayl qo‘shish', 'addFile')],
+    [Markup.button.callback('📤 Yuborish', 'sendAppeal')],
+    [Markup.button.callback('◀️ Ortga', 'backToSendNews')],
+  ],
+};
