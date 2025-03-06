@@ -18,6 +18,7 @@ import { AppealRepository } from 'src/core/repository/appeal.repository';
 import { Buttons } from 'src/api/bot/buttons/buttons.service';
 import { Department } from 'src/core/entity/departments.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
+import { UserStatus } from 'src/common/enum';
 
 @Update()
 export class ManageAppealsActions {
@@ -90,10 +91,19 @@ export class ManageAppealsActions {
       });
       return;
     }
+    await ctx.editMessageText(mainMessageAdmin, {
+      reply_markup: {
+        inline_keyboard: [
+          ...appealMenu.inline_keyboard,
+          [Markup.button.callback('◀️ Ortga', 'backFromSendAppeals')],
+        ],
+      },
+    });
   }
 
   @Action('backFromSendAppeals')
   async backFromSendAppeals(@Ctx() ctx: ContextType) {
+    await this.cache.del(`appeal${ctx.from.id}`);
     switch (ctx.session.departmentForSendAppeal) {
       case 'HR Boʻlimi':
       case 'Oʻquv Boʻlimi': {
@@ -348,11 +358,13 @@ export class ManageAppealsActions {
 
   @Action('backToSendNews')
   async backToSendNews(@Ctx() ctx: ContextType) {
+    await this.cache.del(`appeal${ctx.from.id}`);
     await ctx.editMessageText(mainMessageAdmin, { reply_markup: sendNewsKeys });
   }
 
   @Action('backToNews')
   async backToNews(@Ctx() ctx: ContextType) {
+    await this.cache.del(`appeal${ctx.from.id}`);
     await ctx.editMessageText(mainMessageAdmin, { reply_markup: newsKeys });
   }
 
@@ -395,6 +407,7 @@ export class ManageAppealsActions {
     if (departmentForSendAppeal) {
       userIdsQuery = userIdsQuery.where('department LIKE :department', {
         department: `%${departmentForSendAppeal}%`,
+        status: UserStatus.ACTIVE,
       });
     }
     if (selectedRole) {
@@ -424,7 +437,7 @@ export class ManageAppealsActions {
     const messageOptions = {
       reply_markup: {
         inline_keyboard: [
-          [Markup.button.callback(`O'qidim`, 'readThisAppeal')],
+          [Markup.button.callback(`O'qidim`, `readThisAppeal:${newAppeal.id}`)],
         ],
       },
     };

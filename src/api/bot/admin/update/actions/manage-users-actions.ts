@@ -283,6 +283,12 @@ export class ManageUsersActions {
         reply_markup: {
           inline_keyboard: [
             ...buttons.buttons,
+            [
+              Markup.button.callback(
+                'Tanlash',
+                'selectThisDepartmentForViewUsers',
+              ),
+            ],
             [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
           ],
         },
@@ -295,6 +301,30 @@ export class ManageUsersActions {
       'AdminNavigationForUser',
       UserStatus.ACTIVE,
       department,
+    );
+    if (!reslt) {
+      await ctx.answerCbQuery('Hodimlar mavjud emas !', { show_alert: true });
+      return;
+    }
+    await ctx.editMessageText(reslt.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...reslt.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
+        ],
+      },
+    });
+  }
+
+  @Action('selectThisDepartmentForViewUsers')
+  async selectThisDepartmentForViewUsers(@Ctx() ctx: ContextType) {
+    console.log(ctx.session.searchDepartment);
+    const reslt = await this.buttons.generateUsersKeys(
+      'ViewThisUser',
+      1,
+      'AdminNavigationForUser',
+      UserStatus.ACTIVE,
+      ctx.session.searchDepartment,
     );
     if (!reslt) {
       await ctx.answerCbQuery('Hodimlar mavjud emas !', { show_alert: true });
@@ -457,6 +487,12 @@ export class ManageUsersActions {
         reply_markup: {
           inline_keyboard: [
             ...buttons.buttons,
+            [
+              Markup.button.callback(
+                'Tanlash',
+                'selectThisdepartmentForChangeDepartment',
+              ),
+            ],
             [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
           ],
         },
@@ -464,6 +500,35 @@ export class ManageUsersActions {
       return;
     }
     const departments = dep.split(':');
+    const user = await this.userRepo.findOne({
+      where: { id: ctx.session.selectedUser },
+    });
+    user.department = ctx.session.usersNewDepartment.split(':').join(' ');
+    await this.userRepo.save(user);
+    await ctx.answerCbQuery(
+      `Hodim ${departments[departments.length - 1]} bo'limiga o'tkazildi.`,
+      {
+        show_alert: true,
+      },
+    );
+    ctx.session.usersNewDepartment = '';
+    ctx.session.searchDepartment = departments[departments.length - 1];
+    await ctx.editMessageText(
+      `<b>Ismi:</b> ${user.first_name}\n` +
+        `<b>Familyasi:</b> ${user.last_name}\n` +
+        `<b>Raqami:</b> ${user.phone_number}\n` +
+        `<b>Lavozimi:</b> ${user.role}\n` +
+        `<b>Bo'limi:</b> ${user.department}`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: userKeysForAdmin,
+      },
+    );
+  }
+
+  @Action('selectThisdepartmentForChangeDepartment')
+  async selectThisdepartmentForChangeDepartment(@Ctx() ctx: ContextType) {
+    const departments = ctx.session.usersNewDepartment.split(':');
     const user = await this.userRepo.findOne({
       where: { id: ctx.session.selectedUser },
     });
@@ -523,6 +588,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -541,6 +612,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -559,6 +636,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -576,6 +659,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -594,6 +683,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -611,6 +706,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -628,6 +729,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -645,6 +752,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -661,6 +774,12 @@ export class ManageUsersActions {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisdepartmentForChangeDepartment',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToChangeDepartment')],
             ],
           },
@@ -768,6 +887,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },
@@ -790,6 +915,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },
@@ -812,6 +943,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },
@@ -833,6 +970,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },
@@ -855,6 +998,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },
@@ -876,6 +1025,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },
@@ -897,6 +1052,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },
@@ -918,6 +1079,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },
@@ -938,6 +1105,12 @@ export class ManageUsersActions {
             reply_markup: {
               inline_keyboard: [
                 ...buttons.buttons,
+                [
+                  Markup.button.callback(
+                    'Tanlash',
+                    'selectThisDepartmentForViewUsers',
+                  ),
+                ],
                 [Markup.button.callback('◀️ Ortga', 'backToViewDepartment')],
               ],
             },

@@ -115,6 +115,12 @@ export class AskDepartmentScene {
         reply_markup: {
           inline_keyboard: [
             ...buttons.buttons,
+            [
+              Markup.button.callback(
+                'Tanlash',
+                'selectThisDepartmentForRegister',
+              ),
+            ],
             [Markup.button.callback('◀️ Ortga', 'backToRegister')],
           ],
         },
@@ -122,6 +128,36 @@ export class AskDepartmentScene {
       return;
     }
     const departments = dep.split(':');
+    const user: any = await this.cache.get(`${ctx.from.id}`);
+
+    const obj = {
+      ...user,
+      department: ctx.session.userDepartment.split(':').join(' '),
+    };
+
+    await this.cache.set(`${ctx.from.id}`, { ...obj });
+
+    await ctx.editMessageText(
+      `Ma'lumotlarni tasdiqlaylaysizmi:\n` +
+        `<b>Ism:</b> ${obj.first_name}\n` +
+        `<b>Familya:</b> ${obj.last_name}\n` +
+        `<b>Raqam:</b> ${obj.phone_number}\n` +
+        `<b>Bo'lim:</b> ${departments[departments.length - 1]}`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: [
+            [Markup.button.callback('Tasdiqlash', 'accept')],
+            [Markup.button.callback('Bekor qilish', 'reject')],
+          ],
+        },
+      },
+    );
+  }
+
+  @Action('selectThisDepartmentForRegister')
+  async selectThisDepartmentForRegister(@Ctx() ctx: ContextType) {
+    const departments = ctx.session.userDepartment.split(':');
     const user: any = await this.cache.get(`${ctx.from.id}`);
 
     const obj = {
@@ -216,6 +252,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
@@ -234,6 +276,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
@@ -252,6 +300,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
@@ -269,6 +323,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
@@ -287,6 +347,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
@@ -304,6 +370,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
@@ -321,6 +393,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
@@ -338,6 +416,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
@@ -354,6 +438,12 @@ export class AskDepartmentScene {
           reply_markup: {
             inline_keyboard: [
               ...buttons.buttons,
+              [
+                Markup.button.callback(
+                  'Tanlash',
+                  'selectThisDepartmentForRegister',
+                ),
+              ],
               [Markup.button.callback('◀️ Ortga', 'backToRegister')],
             ],
           },
