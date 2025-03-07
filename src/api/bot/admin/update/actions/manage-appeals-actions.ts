@@ -662,6 +662,31 @@ export class ManageAppealsActions {
     });
   }
 
+  @Action(/nfrfa/)
+  async nfrfa(@Ctx() ctx: ContextType) {
+    const [, page] = (ctx.update as any).callback_query.data.split('=');
+    const result = await this.buttons.generateUsersList(
+      ctx.session.selectedAppeal,
+      +page,
+      'readBy',
+      'nfrfa',
+    );
+
+    if (!result) {
+      await ctx.answerCbQuery('Boshqa mavjud emas !');
+      return;
+    }
+
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToAppeal')],
+        ],
+      },
+    });
+  }
+
   @Action('viewUnRead')
   async viewUnRead(@Ctx() ctx: ContextType) {
     const result = await this.buttons.generateUsersList(
@@ -688,6 +713,31 @@ export class ManageAppealsActions {
       });
       return;
     }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToAppeal')],
+        ],
+      },
+    });
+  }
+
+  @Action(/nfurfa/)
+  async nfurfa(@Ctx() ctx: ContextType) {
+    const [, page] = (ctx.update as any).callback_query.data.split('=');
+    const result = await this.buttons.generateUsersList(
+      ctx.session.selectedAppeal,
+      +page,
+      'unreadBy',
+      'nfurfa',
+    );
+
+    if (!result) {
+      await ctx.answerCbQuery('Boshqa mavjud emas !');
+      return;
+    }
+
     await ctx.editMessageText(result.text, {
       reply_markup: {
         inline_keyboard: [
