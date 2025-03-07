@@ -21,7 +21,7 @@ import { AppealRepository } from 'src/core/repository/appeal.repository';
 import { Buttons } from 'src/api/bot/buttons/buttons.service';
 import { Department } from 'src/core/entity/departments.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
-import { UserRole, UserStatus } from 'src/common/enum';
+import { AppealStatus, UserRole, UserStatus } from 'src/common/enum';
 
 @Update()
 export class ManageAppealsActions {
@@ -338,7 +338,6 @@ export class ManageAppealsActions {
 
   @Action('selectThisDepartmentForSendAppeal')
   async selectThisDepartmentForSendAppeal(@Ctx() ctx: ContextType) {
-    console.log(ctx.session.departmentForSendAppeal);
     await ctx.editMessageText(mainMessageAdmin, {
       reply_markup: {
         inline_keyboard: [
@@ -563,6 +562,147 @@ export class ManageAppealsActions {
     const [, id] = (ctx.update as any).callback_query.data.split('=');
     ctx.session.selectedAppeal = id;
     const appeal = await this.appealRepo.findOne({ where: { id } });
+    if (!appeal.file) {
+      await ctx.editMessageText(appeal.text, {
+        reply_markup: {
+          inline_keyboard: [...newsStatusKeys.inline_keyboard],
+        },
+      });
+      return;
+    }
+    await ctx.deleteMessage();
+    await ctx.sendDocument(appeal.file, {
+      caption: appeal.text,
+      reply_markup: {
+        inline_keyboard: [...newsStatusKeys.inline_keyboard],
+      },
+    });
+  }
+
+  @Action('closeAppeal')
+  async closeAppeal(@Ctx() ctx: ContextType) {
+    await this.appealRepo.update(
+      { id: ctx.session.selectedAppeal },
+      { status: AppealStatus.CLOSED },
+    );
+    const result = await this.buttons.generateAppealKeys(
+      'AppealsForAdmin',
+      ctx.session.appealPage || 1,
+      'AppNavForAd',
+    );
+    await ctx.answerCbQuery('Murojaat yopildi.', { show_alert: true });
+    if (!result) {
+      if ((ctx.update as any).callback_query.message.document) {
+        await ctx.deleteMessage();
+        await ctx.reply(mainMessageAdmin, {
+          reply_markup: newsKeys,
+        });
+        return;
+      }
+      await ctx.editMessageText(mainMessageAdmin, {
+        reply_markup: newsKeys,
+      });
+      return;
+    }
+    if ((ctx.update as any).callback_query.message.document) {
+      await ctx.deleteMessage();
+      await ctx.reply(result.text, {
+        reply_markup: {
+          inline_keyboard: [
+            ...result.buttons,
+            [Markup.button.callback('◀️ Ortga', 'backToAppealsMenu')],
+          ],
+        },
+      });
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToAppealsMenu')],
+        ],
+      },
+    });
+  }
+
+  @Action('viewRead')
+  async viewRead(@Ctx() ctx: ContextType) {
+    const result = await this.buttons.generateUsersList(
+      ctx.session.selectedAppeal,
+      1,
+      'readBy',
+      'nfrfa',
+    );
+    if (!result) {
+      await ctx.answerCbQuery(`Murojaatni o'qiganlar mavjud emas !`, {
+        show_alert: true,
+      });
+      return;
+    }
+    if ((ctx.update as any).callback_query.message.document) {
+      await ctx.deleteMessage();
+      await ctx.reply(result.text, {
+        reply_markup: {
+          inline_keyboard: [
+            ...result.buttons,
+            [Markup.button.callback('◀️ Ortga', 'backToAppeal')],
+          ],
+        },
+      });
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToAppeal')],
+        ],
+      },
+    });
+  }
+
+  @Action('viewUnRead')
+  async viewUnRead(@Ctx() ctx: ContextType) {
+    const result = await this.buttons.generateUsersList(
+      ctx.session.selectedAppeal,
+      1,
+      'unreadBy',
+      'nfurfa',
+    );
+    if (!result) {
+      await ctx.answerCbQuery(`Murojaatni o'qimaganlar mavjud emas !`, {
+        show_alert: true,
+      });
+      return;
+    }
+    if ((ctx.update as any).callback_query.message.document) {
+      await ctx.deleteMessage();
+      await ctx.reply(result.text, {
+        reply_markup: {
+          inline_keyboard: [
+            ...result.buttons,
+            [Markup.button.callback('◀️ Ortga', 'backToAppeal')],
+          ],
+        },
+      });
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToAppeal')],
+        ],
+      },
+    });
+  }
+
+  @Action('backToAppeal')
+  async backToAppeal(@Ctx() ctx: ContextType) {
+    const appeal = await this.appealRepo.findOne({
+      where: { id: ctx.session.selectedAppeal },
+    });
     if (!appeal.file) {
       await ctx.editMessageText(appeal.text, {
         reply_markup: {

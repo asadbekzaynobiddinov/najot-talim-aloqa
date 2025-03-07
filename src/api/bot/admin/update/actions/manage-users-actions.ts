@@ -318,7 +318,6 @@ export class ManageUsersActions {
 
   @Action('selectThisDepartmentForViewUsers')
   async selectThisDepartmentForViewUsers(@Ctx() ctx: ContextType) {
-    console.log(ctx.session.searchDepartment);
     const reslt = await this.buttons.generateUsersKeys(
       'ViewThisUser',
       1,
@@ -467,12 +466,10 @@ export class ManageUsersActions {
   @Action(/keysForChangeDepartment/)
   async keysForChangeDepartment(@Ctx() ctx: ContextType) {
     const [, department] = (ctx.update as any).callback_query.data.split(':');
-    console.log(department);
     ctx.session.searchDepartment = department;
     const dep = ctx.session.usersNewDepartment
       ? ctx.session.usersNewDepartment + `:${department}`
       : '' + `:${department}`;
-    console.log(dep);
     ctx.session.usersNewDepartment = dep;
     const depInfo = await this.departmentRepo.findOne({
       where: { department_name: department },
@@ -557,7 +554,6 @@ export class ManageUsersActions {
 
   @Action('backToChangeDepartment')
   async backToChangeDepartment(@Ctx() ctx: ContextType) {
-    console.log(ctx.session.searchDepartment);
     const dep = ctx.session.usersNewDepartment
       .split(':')
       .slice(0, ctx.session.usersNewDepartment.split(':').length - 1)
@@ -853,7 +849,6 @@ export class ManageUsersActions {
 
   @Action('backToViewDepartment')
   async backToViewDepartment(@Ctx() ctx: ContextType) {
-    console.log(ctx.session.searchDepartment);
     switch (ctx.session.searchDepartment) {
       case 'HR Boʻlimi':
       case 'Oʻquv Boʻlimi': {

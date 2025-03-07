@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserStatus } from 'src/common/enum';
+import { AppealStatus, UserStatus } from 'src/common/enum';
 import { Appeals } from 'src/core/entity/appeal.entity';
 import { Department } from 'src/core/entity/departments.entity';
 import { User } from 'src/core/entity/user.entity';
@@ -142,6 +142,7 @@ export class Buttons {
     const skip = (page - 1) * take;
 
     const appeals = await this.appealRepo.find({
+      where: { status: AppealStatus.ACTIVE },
       skip,
       take,
       order: { created_at: 'DESC' },
@@ -183,6 +184,60 @@ export class Buttons {
     return {
       text,
       buttons,
+    };
+  }
+
+  async generateUsersList(
+    appealId: string,
+    page: number,
+    listType: 'readBy' | 'unreadBy',
+    navigationCallback: string,
+  ): Promise<{ text: string; buttons: any[] } | null> {
+    const appeal = await this.appealRepo.findOne({ where: { id: appealId } });
+    if (!appeal) return null;
+
+    const userIds = appeal[listType];
+    if (!userIds || userIds.length === 0) return null;
+
+    const take = 10;
+    const skip = (page - 1) * take;
+
+    const users = await this.userRepo
+      .createQueryBuilder('user')
+      .select(['user.first_name', 'user.last_name'])
+      .where('user.telegram_id IN (:...ids)', { ids: userIds })
+      .skip(skip)
+      .take(take)
+      .getRawMany();
+
+    if (users.length === 0) return null;
+
+    const usersList = users
+      .map(
+        (user, index) =>
+          `${skip + index + 1}. ${user.user_first_name} ${user.user_last_name}`,
+      )
+      .join('\n');
+
+    const totalPages = Math.ceil(userIds.length / take);
+    const buttons = [];
+
+    if (page > 1) {
+      buttons.push({
+        text: '⬅️ Oldingi',
+        callback_data: `${navigationCallback}=${page - 1}`,
+      });
+    }
+    if (page < totalPages) {
+      buttons.push({
+        text: '➡️ Keyingi',
+        callback_data: `${navigationCallback}=${page + 1}`,
+      });
+    }
+
+    return {
+      text: usersList,
+      buttons: buttons.length > 0 ? [buttons] : [],
     };
   }
 }

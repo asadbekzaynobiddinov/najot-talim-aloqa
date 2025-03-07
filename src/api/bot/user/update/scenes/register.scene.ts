@@ -100,7 +100,6 @@ export class AskDepartmentScene {
     const dep = ctx.session.userDepartment
       ? ctx.session.userDepartment + `:${department}`
       : '' + `:${department}`;
-    console.log(dep);
     ctx.session.userDepartment = dep;
     const depInfo = await this.departmentRepo.findOne({
       where: { department_name: department },
@@ -188,7 +187,6 @@ export class AskDepartmentScene {
   @Action('accept')
   async accept(@Ctx() ctx: ContextType) {
     const user: any = await this.cache.get(`${ctx.from.id}`);
-    console.log(user);
     const newUser = this.userRepo.create({
       telegram_id: `${user.telegram_id}`,
       first_name: user.first_name,
@@ -208,20 +206,18 @@ export class AskDepartmentScene {
 
   @Action('reject')
   async reject(@Ctx() ctx: ContextType) {
-    const user: any = await this.cache.get(`${ctx.from.id}`);
-    console.log(user);
+    await this.cache.del(`${ctx.from.id}`);
     ctx.session.currentDepartment = '';
     ctx.session.lastSelectedDepartment = '';
     ctx.session.userDepartment = '';
     await this.cache.del(`${ctx.from.id}`);
     await ctx.deleteMessage();
-    await ctx.reply('Bekorr qilindi !', Markup.removeKeyboard());
+    await ctx.reply('Bekor qilindi !', Markup.removeKeyboard());
     await ctx.scene.leave();
   }
 
   @Action('backToRegister')
   async backToRegister(@Ctx() ctx: ContextType) {
-    console.log(ctx.session.lastSelectedDepartment);
     const dep = ctx.session.userDepartment
       .split(':')
       .slice(0, ctx.session.userDepartment.split(':').length - 1)

@@ -18,7 +18,6 @@ export class GetAppealsText {
     const text = (ctx.update as any).message.text;
     const appeal: any = await this.cache.get(`appeal${ctx.from.id}`);
     await this.cache.set(`appeal${ctx.from.id}`, { ...appeal, text });
-    console.log(text);
     await ctx.reply(mainMessageAdmin, {
       reply_markup: {
         inline_keyboard: [
