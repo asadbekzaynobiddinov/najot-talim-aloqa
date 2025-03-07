@@ -29,16 +29,20 @@ export class AdminMenuActions {
     const countOfRegisteredUsers = await this.userRepo.count({
       where: { status: UserStatus.ACTIVE },
     });
-    await ctx.editMessageText(
-      waitingUsersMessage +
-        countOfNotRegisteredUsers +
-        '\n' +
-        allUsersMessage +
-        countOfRegisteredUsers,
-      {
-        reply_markup: manageUsersKeys,
-      },
-    );
+    try {
+      await ctx.editMessageText(
+        waitingUsersMessage +
+          countOfNotRegisteredUsers +
+          '\n' +
+          allUsersMessage +
+          countOfRegisteredUsers,
+        {
+          reply_markup: manageUsersKeys,
+        },
+      );
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   @Action('news')
