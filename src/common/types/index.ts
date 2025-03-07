@@ -16,5 +16,7 @@ export type ContextType = Context &
       usersNewDepartment: string;
       departmentForSendAppeal: string;
       selectedRole: string;
+      selectedAppeal: string;
+      appealPage: number;
     };
   };

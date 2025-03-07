@@ -5,6 +5,9 @@ import {
   sendNewsKeys,
   backToSendNews,
   appealMenu,
+  positionsKeys,
+  newsStatusKeys,
+  // newsStatusKeys,
 } from 'src/common/constants/admin';
 import { ContextType } from 'src/common/types';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,7 +21,7 @@ import { AppealRepository } from 'src/core/repository/appeal.repository';
 import { Buttons } from 'src/api/bot/buttons/buttons.service';
 import { Department } from 'src/core/entity/departments.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
-import { UserStatus } from 'src/common/enum';
+import { UserRole, UserStatus } from 'src/common/enum';
 
 @Update()
 export class ManageAppealsActions {
@@ -348,13 +351,51 @@ export class ManageAppealsActions {
 
   @Action('byPositions')
   async byPositions(@Ctx() ctx: ContextType) {
-    await ctx.editMessageText('Coming soon', { reply_markup: backToSendNews });
+    await ctx.editMessageText(mainMessageAdmin, {
+      reply_markup: positionsKeys,
+    });
   }
 
-  @Action('forSelectedUsers')
-  async forSelectedUsers(@Ctx() ctx: ContextType) {
-    await ctx.editMessageText('Coming soon', { reply_markup: backToSendNews });
+  @Action('forManagers')
+  async forManagers(@Ctx() ctx: ContextType) {
+    ctx.session.selectedRole = UserRole.MANAGER;
+    await ctx.editMessageText(mainMessageAdmin, {
+      reply_markup: {
+        inline_keyboard: [
+          ...appealMenu.inline_keyboard,
+          [Markup.button.callback('◀️ Ortga', 'backFromPositions')],
+        ],
+      },
+    });
   }
+
+  @Action('forEmployees')
+  async forEmployees(@Ctx() ctx: ContextType) {
+    ctx.session.selectedRole = UserRole.MEMBER;
+    await ctx.editMessageText(mainMessageAdmin, {
+      reply_markup: {
+        inline_keyboard: [
+          ...appealMenu.inline_keyboard,
+          [Markup.button.callback('◀️ Ortga', 'backFromPositions')],
+        ],
+      },
+    });
+  }
+
+  @Action('backFromPositions')
+  async backFromPositions(@Ctx() ctx: ContextType) {
+    await this.cache.del(`appeal${ctx.from.id}`);
+    await ctx.editMessageText(mainMessageAdmin, {
+      reply_markup: positionsKeys,
+    });
+  }
+
+  // @Action('forSelectedUsers')
+  // async forSelectedUsers(@Ctx() ctx: ContextType) {
+  //   await ctx.editMessageText(mainMessageAdmin, {
+  //     reply_markup: backToSendNews,
+  //   });
+  // }
 
   @Action('backToSendNews')
   async backToSendNews(@Ctx() ctx: ContextType) {
@@ -366,6 +407,11 @@ export class ManageAppealsActions {
   async backToNews(@Ctx() ctx: ContextType) {
     await this.cache.del(`appeal${ctx.from.id}`);
     await ctx.editMessageText(mainMessageAdmin, { reply_markup: newsKeys });
+  }
+
+  @Action('headerForAppeal')
+  async headerForAppeal(@Ctx() ctx: ContextType) {
+    await ctx.scene.enter('GetHeaderForAppeal');
   }
 
   @Action('textOfAppeal')
@@ -400,6 +446,13 @@ export class ManageAppealsActions {
       return;
     }
 
+    if (!appeal.header) {
+      await ctx.answerCbQuery('Avval murojat sarlavhasini kiriting !', {
+        show_alert: true,
+      });
+      return;
+    }
+
     const { departmentForSendAppeal, selectedRole } = ctx.session;
 
     let userIdsQuery = this.userRepo.createQueryBuilder().select('telegram_id');
@@ -422,6 +475,7 @@ export class ManageAppealsActions {
     const newAppeal = this.appealRepo.create({
       text: appeal.text,
       file: appeal.file_id,
+      header: appeal.header,
       unreadBy: userTelegramIds,
       readBy: [],
       department: departmentForSendAppeal,
@@ -442,15 +496,127 @@ export class ManageAppealsActions {
       },
     };
 
+    const message = `<b>${newAppeal.header}</b>\n` + newAppeal.text;
+
     for (const userId of userTelegramIds) {
       if (newAppeal.file) {
         await ctx.telegram.sendDocument(userId, newAppeal.file, {
-          caption: newAppeal.text,
+          caption: message,
+          parse_mode: 'HTML',
           ...messageOptions,
         });
       } else {
-        await ctx.telegram.sendMessage(userId, newAppeal.text, messageOptions);
+        await ctx.telegram.sendMessage(userId, message, {
+          ...messageOptions,
+          parse_mode: 'HTML',
+        });
       }
     }
+  }
+
+  @Action('newsStatus')
+  async newsStatus(@Ctx() ctx: ContextType) {
+    const result = await this.buttons.generateAppealKeys(
+      'AppealsForAdmin',
+      1,
+      'AppNavForAd',
+    );
+    if (!result) {
+      await ctx.answerCbQuery('Murojaatlar mavjud emas !');
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToAppealsMenu')],
+        ],
+      },
+    });
+  }
+
+  @Action(/AppNavForAd/)
+  async AppNavForAd(@Ctx() ctx: ContextType) {
+    const [, page] = (ctx.update as any).callback_query.data.split('=');
+    ctx.session.appealPage = +page;
+    const result = await this.buttons.generateAppealKeys(
+      'AppealsForAdmin',
+      +page,
+      'AppNavForAd',
+    );
+    if (!result) {
+      await ctx.answerCbQuery(`Boshqa murojaatlar yo'q`, { show_alert: true });
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToAppealsMenu')],
+        ],
+      },
+    });
+  }
+
+  @Action(/AppealsForAdmin/)
+  async AppealsForAdmin(@Ctx() ctx: ContextType) {
+    const [, id] = (ctx.update as any).callback_query.data.split('=');
+    ctx.session.selectedAppeal = id;
+    const appeal = await this.appealRepo.findOne({ where: { id } });
+    if (!appeal.file) {
+      await ctx.editMessageText(appeal.text, {
+        reply_markup: {
+          inline_keyboard: [...newsStatusKeys.inline_keyboard],
+        },
+      });
+      return;
+    }
+    await ctx.deleteMessage();
+    await ctx.sendDocument(appeal.file, {
+      caption: appeal.text,
+      reply_markup: {
+        inline_keyboard: [...newsStatusKeys.inline_keyboard],
+      },
+    });
+  }
+
+  @Action('backToAppealsMenu')
+  async backToAppealsMenu(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText(mainMessageAdmin, { reply_markup: newsKeys });
+  }
+
+  @Action('backToAppealsList')
+  async backToAppealsList(@Ctx() ctx: ContextType) {
+    const result = await this.buttons.generateAppealKeys(
+      'AppealsForAdmin',
+      ctx.session.appealPage || 1,
+      'AppNavForAd',
+    );
+    if (!result) {
+      await ctx.editMessageText(mainMessageAdmin, {
+        reply_markup: newsKeys,
+      });
+      return;
+    }
+    if ((ctx.update as any).callback_query.message.document) {
+      await ctx.deleteMessage();
+      await ctx.reply(result.text, {
+        reply_markup: {
+          inline_keyboard: [
+            ...result.buttons,
+            [Markup.button.callback('◀️ Ortga', 'backToAppealsMenu')],
+          ],
+        },
+      });
+      return;
+    }
+    await ctx.editMessageText(result.text, {
+      reply_markup: {
+        inline_keyboard: [
+          ...result.buttons,
+          [Markup.button.callback('◀️ Ortga', 'backToAppealsMenu')],
+        ],
+      },
+    });
   }
 }

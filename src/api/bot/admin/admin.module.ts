@@ -7,7 +7,11 @@ import { Department } from 'src/core/entity/departments.entity';
 import { Buttons } from '../buttons/buttons.service';
 import { User } from 'src/core/entity/user.entity';
 import { ChangeUsersPhone } from './update/scenes/change-users-phone';
-import { GetAppealsFile, GetAppealsText } from './update/scenes/appeal-scene';
+import {
+  GetAppealsFile,
+  GetAppealsText,
+  GetHeaderForAppeal,
+} from './update/scenes/appeal-scene';
 import { Appeals } from 'src/core/entity/appeal.entity';
 import { ManageUsersActions } from './update/actions/manage-users-actions';
 import { AdminMenuActions } from './update/actions/menu-actions';
@@ -23,6 +27,7 @@ import { ManageDepartmentsActions } from './update/actions/manage-departments-sc
     ChangeUsersPhone,
     GetAppealsFile,
     GetAppealsText,
+    GetHeaderForAppeal,
     Buttons,
     ManageAppealsActions,
     ManageDepartmentsActions,

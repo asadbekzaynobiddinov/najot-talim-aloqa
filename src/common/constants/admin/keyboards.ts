@@ -65,12 +65,12 @@ export const sendNewsKeys: InlineKeyboardMarkup = {
     [Markup.button.callback('👥 Barcha foydalanuvchilarga', 'forEverUsers')],
     [Markup.button.callback('🏢 Bo‘limlar bo‘yicha', 'byDepatments')],
     [Markup.button.callback('👤 Lavozimlar bo‘yicha', 'byPositions')],
-    [
-      Markup.button.callback(
-        '🗂 Tanlangan foydalanuvchilarga',
-        'forSelectedUsers',
-      ),
-    ],
+    // [
+    //   Markup.button.callback(
+    //     '🗂 Tanlangan foydalanuvchilarga',
+    //     'forSelectedUsers',
+    //   ),
+    // ],
     [Markup.button.callback('◀️ Ortga', 'backToNews')],
   ],
 };
@@ -82,7 +82,9 @@ export const backToSendNews: InlineKeyboardMarkup = {
 export const newsStatusKeys: InlineKeyboardMarkup = {
   inline_keyboard: [
     [Markup.button.callback('🔍 O‘qiganlarni ko‘rish', 'viewRead')],
-    [Markup.button.callback('◀️ Ortga', 'backToNews')],
+    [Markup.button.callback('🔍 O‘qimaganlarni ko‘rish', 'viewUnRead')],
+    [Markup.button.callback('❌ Murojaatni yopish', 'closeAppeal')],
+    [Markup.button.callback('◀️ Ortga', 'backToAppealsList')],
   ],
 };
 
@@ -139,8 +141,17 @@ export const editUserKeys: InlineKeyboardMarkup = {
 
 export const appealMenu: InlineKeyboardMarkup = {
   inline_keyboard: [
+    [Markup.button.callback('➕ Sarlavha', 'headerForAppeal')],
     [Markup.button.callback('📝 Murojaat matni', 'textOfAppeal')],
     [Markup.button.callback('📎 Fayl qo‘shish', 'addFile')],
     [Markup.button.callback('📤 Yuborish', 'sendAppeal')],
+  ],
+};
+
+export const positionsKeys: InlineKeyboardMarkup = {
+  inline_keyboard: [
+    [Markup.button.callback(`Bo'lim boshliglari`, 'forManagers')],
+    [Markup.button.callback('Hodimlar', 'forEmployees')],
+    [Markup.button.callback('◀️ Ortga', 'backToSendNews')],
   ],
 };

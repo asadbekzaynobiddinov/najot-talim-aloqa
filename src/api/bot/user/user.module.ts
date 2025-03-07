@@ -9,9 +9,13 @@ import {
 } from './update/scenes/register.scene';
 import { Department } from 'src/core/entity/departments.entity';
 import { Buttons } from '../buttons/buttons.service';
+import { Appeals } from 'src/core/entity/appeal.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Department]), CacheConfigModule],
+  imports: [
+    TypeOrmModule.forFeature([User, Department, Appeals]),
+    CacheConfigModule,
+  ],
   providers: [RegisterScene, AskLastName, AskDepartmentScene, Buttons],
 })
 export class UserModule {}

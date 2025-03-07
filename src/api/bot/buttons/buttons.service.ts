@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatus } from 'src/common/enum';
+import { Appeals } from 'src/core/entity/appeal.entity';
 import { Department } from 'src/core/entity/departments.entity';
 import { User } from 'src/core/entity/user.entity';
+import { AppealRepository } from 'src/core/repository/appeal.repository';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
 import { UserRepository } from 'src/core/repository/user.repository';
 import { Markup } from 'telegraf';
@@ -15,6 +17,7 @@ export class Buttons {
     private readonly departmentRepo: DepartmentRepository,
     @InjectRepository(User)
     private readonly userRepo: UserRepository,
+    @InjectRepository(Appeals) private readonly appealRepo: AppealRepository,
   ) {}
 
   async generateDepartmentKeys(callback: string): Promise<any> {
@@ -116,6 +119,59 @@ export class Buttons {
         callback_data: `${navigationCallback}=${page - 1}`,
       });
     if (users.length === take)
+      navigationButtons.push({
+        text: '➡️ Keyingi',
+        callback_data: `${navigationCallback}=${page + 1}`,
+      });
+
+    if (navigationButtons.length) {
+      buttons.push(navigationButtons);
+    }
+    return {
+      text,
+      buttons,
+    };
+  }
+
+  async generateAppealKeys(
+    callback: string,
+    page: number,
+    navigationCallback: string,
+  ) {
+    const take = 10;
+    const skip = (page - 1) * take;
+
+    const appeals = await this.appealRepo.find({
+      skip,
+      take,
+      order: { created_at: 'DESC' },
+    });
+
+    if (appeals.length == 0) {
+      return false;
+    }
+
+    const text = appeals
+      .map((app, index) => `${index + 1}. ${app.header}`)
+      .join('\n');
+
+    const buttons = [];
+    for (let i = 0; i < appeals.length; i += 5) {
+      buttons.push(
+        appeals.slice(i, i + 5).map((p, index) => ({
+          text: (skip + i + index + 1).toString(),
+          callback_data: `${callback}=${p.id}`,
+        })),
+      );
+    }
+
+    const navigationButtons = [];
+    if (page > 1)
+      navigationButtons.push({
+        text: '⬅️ Oldingi',
+        callback_data: `${navigationCallback}=${page - 1}`,
+      });
+    if (appeals.length === take)
       navigationButtons.push({
         text: '➡️ Keyingi',
         callback_data: `${navigationCallback}=${page + 1}`,

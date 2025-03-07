@@ -9,6 +9,9 @@ export class Appeals extends BaseEntity {
   @Column({ nullable: true })
   file: string;
 
+  @Column()
+  header: string;
+
   @Column('simple-array', { nullable: true })
   readBy: string[]; // O'qigan foydalanuvchilar (telegram_id lar massivi)
 

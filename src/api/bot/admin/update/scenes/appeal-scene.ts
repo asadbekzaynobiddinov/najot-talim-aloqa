@@ -58,3 +58,28 @@ export class GetAppealsFile {
     await ctx.scene.leave();
   }
 }
+
+@Scene('GetHeaderForAppeal')
+export class GetHeaderForAppeal {
+  constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
+  @SceneEnter()
+  async onEnter(@Ctx() ctx: ContextType) {
+    await ctx.editMessageText('Murojat sarlavhasini kiriting:');
+  }
+
+  @On('text')
+  async onText(@Ctx() ctx: ContextType) {
+    const header = (ctx.update as any).message.text;
+    const appeal: any = await this.cache.get(`appeal${ctx.from.id}`);
+    await this.cache.set(`appeal${ctx.from.id}`, { ...appeal, header });
+    await ctx.reply(mainMessageAdmin, {
+      reply_markup: {
+        inline_keyboard: [
+          ...appealMenu.inline_keyboard,
+          [Markup.button.callback('◀️ Ortga', 'backToSendNews')],
+        ],
+      },
+    });
+    await ctx.scene.leave();
+  }
+}
