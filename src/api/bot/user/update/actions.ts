@@ -33,6 +33,8 @@ export class UserActions {
     }
 
     await ctx.editMessageReplyMarkup(null);
-    await ctx.answerCbQuery('Murojaat o‘qilgan deb belgilandi!');
+    await ctx.answerCbQuery('Murojaat o‘qilgan deb belgilandi!', {
+      show_alert: true,
+    });
   }
 }

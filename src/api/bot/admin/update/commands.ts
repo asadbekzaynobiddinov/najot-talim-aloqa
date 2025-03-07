@@ -6,6 +6,8 @@ import { ContextType } from 'src/common/types';
 export class AdminCommands {
   @Command('admin')
   async admin(@Ctx() ctx: ContextType) {
-    await ctx.reply(mainMessageAdmin, { reply_markup: adminMenu });
+    ctx.session.lastMessage = await ctx.reply(mainMessageAdmin, {
+      reply_markup: adminMenu,
+    });
   }
 }

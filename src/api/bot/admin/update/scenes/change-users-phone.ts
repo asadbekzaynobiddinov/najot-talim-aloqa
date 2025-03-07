@@ -21,16 +21,19 @@ export class ChangeUsersPhone {
   async onText(@Ctx() ctx: ContextType) {
     const phone_number = (ctx.update as any).message.text;
     ctx.session.usersNewPhone = phone_number;
-    await ctx.reply(phone_number + ' ni tasdiqlaysizmi ?', {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            Markup.button.callback('Ha', 'yes'),
-            Markup.button.callback(`Yo'q`, 'no'),
+    ctx.session.lastMessage = await ctx.reply(
+      phone_number + ' ni tasdiqlaysizmi ?',
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              Markup.button.callback('Ha', 'yes'),
+              Markup.button.callback(`Yo'q`, 'no'),
+            ],
           ],
-        ],
+        },
       },
-    });
+    );
   }
 
   @Action('yes')

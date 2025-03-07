@@ -18,7 +18,7 @@ export class GetAppealsText {
     const text = (ctx.update as any).message.text;
     const appeal: any = await this.cache.get(`appeal${ctx.from.id}`);
     await this.cache.set(`appeal${ctx.from.id}`, { ...appeal, text });
-    await ctx.reply(mainMessageAdmin, {
+    ctx.session.lastMessage = await ctx.reply(mainMessageAdmin, {
       reply_markup: {
         inline_keyboard: [
           ...appealMenu.inline_keyboard,
@@ -46,7 +46,7 @@ export class GetAppealsFile {
       ...appeal,
       file_id: file.file_id,
     });
-    await ctx.reply(mainMessageAdmin, {
+    ctx.session.lastMessage = await ctx.reply(mainMessageAdmin, {
       reply_markup: {
         inline_keyboard: [
           ...appealMenu.inline_keyboard,
@@ -71,7 +71,7 @@ export class GetHeaderForAppeal {
     const header = (ctx.update as any).message.text;
     const appeal: any = await this.cache.get(`appeal${ctx.from.id}`);
     await this.cache.set(`appeal${ctx.from.id}`, { ...appeal, header });
-    await ctx.reply(mainMessageAdmin, {
+    ctx.session.lastMessage = await ctx.reply(mainMessageAdmin, {
       reply_markup: {
         inline_keyboard: [
           ...appealMenu.inline_keyboard,

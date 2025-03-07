@@ -13,7 +13,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Department } from 'src/core/entity/departments.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
 import { Markup } from 'telegraf';
+import { LastMessageGuard } from 'src/common/guard/last-message.guard';
+import { UseGuards } from '@nestjs/common';
 
+@UseGuards(LastMessageGuard)
 @Update()
 export class ManageDepartmentsActions {
   constructor(

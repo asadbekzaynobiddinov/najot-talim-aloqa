@@ -14,7 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Markup } from 'telegraf';
 import { User } from 'src/core/entity/user.entity';
 import { UserRepository } from 'src/core/repository/user.repository';
-import { Inject } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { Appeals } from 'src/core/entity/appeal.entity';
 import { AppealRepository } from 'src/core/repository/appeal.repository';
@@ -22,7 +22,9 @@ import { Buttons } from 'src/api/bot/buttons/buttons.service';
 import { Department } from 'src/core/entity/departments.entity';
 import { DepartmentRepository } from 'src/core/repository/department.repository';
 import { AppealStatus, UserRole, UserStatus } from 'src/common/enum';
+import { LastMessageGuard } from 'src/common/guard/last-message.guard';
 
+@UseGuards(LastMessageGuard)
 @Update()
 export class ManageAppealsActions {
   constructor(
@@ -571,7 +573,7 @@ export class ManageAppealsActions {
       return;
     }
     await ctx.deleteMessage();
-    await ctx.sendDocument(appeal.file, {
+    ctx.session.lastMessage = await ctx.sendDocument(appeal.file, {
       caption: appeal.text,
       reply_markup: {
         inline_keyboard: [...newsStatusKeys.inline_keyboard],
@@ -594,7 +596,7 @@ export class ManageAppealsActions {
     if (!result) {
       if ((ctx.update as any).callback_query.message.document) {
         await ctx.deleteMessage();
-        await ctx.reply(mainMessageAdmin, {
+        ctx.session.lastMessage = await ctx.reply(mainMessageAdmin, {
           reply_markup: newsKeys,
         });
         return;
@@ -606,7 +608,7 @@ export class ManageAppealsActions {
     }
     if ((ctx.update as any).callback_query.message.document) {
       await ctx.deleteMessage();
-      await ctx.reply(result.text, {
+      ctx.session.lastMessage = await ctx.reply(result.text, {
         reply_markup: {
           inline_keyboard: [
             ...result.buttons,
@@ -642,7 +644,7 @@ export class ManageAppealsActions {
     }
     if ((ctx.update as any).callback_query.message.document) {
       await ctx.deleteMessage();
-      await ctx.reply(result.text, {
+      ctx.session.lastMessage = await ctx.reply(result.text, {
         reply_markup: {
           inline_keyboard: [
             ...result.buttons,
@@ -703,7 +705,7 @@ export class ManageAppealsActions {
     }
     if ((ctx.update as any).callback_query.message.document) {
       await ctx.deleteMessage();
-      await ctx.reply(result.text, {
+      ctx.session.lastMessage = await ctx.reply(result.text, {
         reply_markup: {
           inline_keyboard: [
             ...result.buttons,
@@ -762,7 +764,7 @@ export class ManageAppealsActions {
       return;
     }
     await ctx.deleteMessage();
-    await ctx.sendDocument(appeal.file, {
+    ctx.session.lastMessage = await ctx.sendDocument(appeal.file, {
       caption: appeal.text,
       reply_markup: {
         inline_keyboard: [...newsStatusKeys.inline_keyboard],
@@ -790,7 +792,7 @@ export class ManageAppealsActions {
     }
     if ((ctx.update as any).callback_query.message.document) {
       await ctx.deleteMessage();
-      await ctx.reply(result.text, {
+      ctx.session.lastMessage = await ctx.reply(result.text, {
         reply_markup: {
           inline_keyboard: [
             ...result.buttons,

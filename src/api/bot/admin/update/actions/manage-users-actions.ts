@@ -17,7 +17,10 @@ import { Markup } from 'telegraf';
 import { User } from 'src/core/entity/user.entity';
 import { UserRepository } from 'src/core/repository/user.repository';
 import { UserRole, UserStatus } from 'src/common/enum';
+import { LastMessageGuard } from 'src/common/guard/last-message.guard';
+import { UseGuards } from '@nestjs/common';
 
+@UseGuards(LastMessageGuard)
 @Update()
 export class ManageUsersActions {
   constructor(

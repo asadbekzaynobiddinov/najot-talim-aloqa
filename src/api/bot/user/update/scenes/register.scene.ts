@@ -86,7 +86,7 @@ export class AskDepartmentScene {
       });
       return;
     }
-    ctx.reply(`Bo'limingizni tanlang:`, {
+    ctx.session.lastMessage = await ctx.reply(`Bo'limingizni tanlang:`, {
       reply_markup: {
         inline_keyboard: [...buttons.buttons],
       },

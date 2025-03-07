@@ -15,7 +15,10 @@ import {
   newsKeys,
   manageDepartmentKeys,
 } from 'src/common/constants/admin';
+import { LastMessageGuard } from 'src/common/guard/last-message.guard';
+import { UseGuards } from '@nestjs/common';
 
+@UseGuards(LastMessageGuard)
 @Update()
 export class AdminMenuActions {
   constructor(
